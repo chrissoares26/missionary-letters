@@ -83,11 +83,11 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 
 ---
 
-## Epic 0: Baseline and Delivery Guardrails
+## Epic 0: Baseline and Delivery Guardrails ✅ COMPLETE
 
 **Objective:** Lock scope, definitions, and delivery standards before implementation.
 
-### Story 0.1: Confirm Scope Baseline
+### Story 0.1: Confirm Scope Baseline ✅
 **Scope**
 - Align all implementation decisions to PRD and app spec.
 - Capture explicit MVP boundaries in implementation doc.
@@ -99,13 +99,13 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - None.
 
 **Acceptance Criteria**
-- MVP goals and non-goals are explicitly listed.
-- Framework decision (Vue + Vite) is explicitly recorded.
+- ✅ MVP goals and non-goals are explicitly listed.
+- ✅ Framework decision (Vue + Vite) is explicitly recorded.
 
 **Implementation Notes**
 - Treat this document as canonical implementation backlog for MVP.
 
-### Story 0.2: Define Technical Decisions and Constraints
+### Story 0.2: Define Technical Decisions and Constraints ✅
 **Scope**
 - Freeze platform assumptions and toolchain path.
 
@@ -116,21 +116,23 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Story 0.1.
 
 **Acceptance Criteria**
-- Supabase platform decision documented.
-- Supabase CLI workflow documented.
-- Env migration requirement for `supabase.ts` captured.
-- WhatsApp/Facebook automation excluded in MVP.
+- ✅ Supabase platform decision documented.
+- ✅ Supabase CLI workflow documented.
+- ✅ Env migration requirement for `supabase.ts` captured.
+- ✅ WhatsApp/Facebook automation excluded in MVP.
 
 **Epic 0 Exit Criteria**
-- Scope and technical decision sections approved and versioned.
+- ✅ Scope and technical decision sections approved and versioned.
 
 ---
 
-## Epic 1: Foundation and Platform Setup
+## Epic 1: Foundation and Platform Setup ✅ COMPLETE
 
 **Objective:** Make the app deployable as a secure, mobile-first shell with stable routing and environment conventions.
 
-### Story 1.1: Environment and Client Initialization Hardening
+**Session:** `2026-03-03-1200-epic-1-foundation.md`
+
+### Story 1.1: Environment and Client Initialization Hardening ✅
 **Scope**
 - Standardize Vite env usage for Supabase client.
 - Define failure behavior for missing/invalid env.
@@ -143,13 +145,15 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Epic 0.
 
 **Acceptance Criteria**
-- App can initialize Supabase client with Vite env vars.
-- Missing env behavior is defined (fail fast + actionable error).
+- ✅ App can initialize Supabase client with Vite env vars (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
+- ✅ Missing env behavior defined — fail fast with actionable error in `src/utils/supabase.ts`.
 
 **Implementation Notes**
-- Target integration file: `src/utils/supabase.ts`.
+- `src/utils/supabase.ts` — env vars fixed, fail-fast validation added.
+- `.env.example` added with required `VITE_` prefixed keys.
+- `.env` keys renamed: `SUPABASE_URL` → `VITE_SUPABASE_URL`, `SUPABASE_KEY` → `VITE_SUPABASE_ANON_KEY`.
 
-### Story 1.2: PWA Baseline
+### Story 1.2: PWA Baseline ✅
 **Scope**
 - Add installable PWA shell fundamentals.
 
@@ -162,10 +166,16 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Story 1.1.
 
 **Acceptance Criteria**
-- Installable on iPhone home screen.
-- Basic offline shell behavior defined.
+- ✅ Installable on iPhone home screen.
+- ✅ Basic offline shell behavior — Workbox shell + static asset caching.
 
-### Story 1.3: App Shell and Route Skeleton
+**Implementation Notes**
+- `vite-plugin-pwa@1.2.0` installed and configured in `vite.config.ts`.
+- Manifest embedded in Vite config: pt-BR language, theme `#2d4a45`, all required icon sizes.
+- Icons generated via ImageMagick from source SVG: `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` (180×180).
+- `index.html` updated with `lang="pt-BR"`, theme-color, apple PWA meta tags.
+
+### Story 1.3: App Shell and Route Skeleton ✅
 **Scope**
 - Establish route structure and navigation entry points.
 
@@ -177,11 +187,19 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Story 1.1.
 
 **Acceptance Criteria**
-- Vue Router paths are mapped and prioritized.
-- Navigation structure supports MVP journey.
+- ✅ Vue Router paths mapped — all 6 MVP routes wired.
+- ✅ Navigation structure supports MVP journey via bottom nav.
+
+**Implementation Notes**
+- `src/router/index.ts` — 6 routes: `/`, `/missionaries`, `/style-library`, `/campaigns/new`, `/campaigns/:id`, `/settings`.
+- `src/components/layout/BottomNav.vue` — 4-item bottom nav (Dashboard, Missionaries, Campaigns, Settings) with inline SVG icons, active state, safe-area padding.
+- `src/App.vue` — replaced scaffold with real app shell (RouterView + BottomNav, mobile-first).
+- All page stubs created under `src/pages/` with `<script setup>` + pt-BR placeholder content.
+- `App.spec.ts` updated to use router plugin; 1/1 tests passing.
+- Deps added: `tailwindcss@4.2.1`, `@tailwindcss/vite`, `@pinia/colada@0.21.7`.
 
 **Epic 1 Exit Criteria**
-- PWA shell, env conventions, and route skeleton are implementation-ready.
+- ✅ PWA shell, env conventions, and route skeleton complete and browser-verified.
 
 ---
 
