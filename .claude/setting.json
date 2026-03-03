@@ -1,0 +1,171 @@
+{
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(git:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr status:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue status:*)",
+      "Bash(mv:*)",
+      "Bash(echo:*)",
+      "Bash(sed:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(pnpm:*)",
+      "Bash(pkill:*)",
+      "Bash(touch:*)",
+      "Bash(grep:*)",
+      "Bash(sqlite3:*)",
+      "Bash(curl:*)",
+      "Bash(rg:*)",
+      "Bash(chmod:*)",
+      "Bash(lsof:*)",
+      "Bash(make:*)",
+      "Bash(PORT=:*)",
+      "Bash(find:*)",
+      "Bash(docker:*)",
+      "Bash(python3:*)",
+      "Bash(agent-browser:*)",
+      "Bash(trash:*)",
+      "Bash(wc:*)",
+      "Update(*:*)",
+      "Update(*)",
+      "Write(*)",
+      "WebFetch(domain:github.blog)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:esm.dev)",
+      "WebFetch(domain:esm.is)",
+      "WebFetch(domain:vuejs.org)",
+      "WebFetch(domain:*.vuejs.org)",
+      "WebFetch(domain:nuxt.com)",
+      "WebFetch(domain:ui.nuxt.com)",
+      "WebFetch(domain:vite.dev)",
+      "WebFetch(domain:oxc.rs)",
+      "WebSearch"
+    ],
+    "deny": []
+  },
+  "model": "opus",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -q '.env'; then exit 2; fi; }"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -Eiq '\\.(ts|mts|tsx|js|mjs|jsx|json|css|html|md|vue)$'; then pnpm oxfmt  \"$file_path\"; fi; }"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "terminal-notifier -title \"Claude Code\" -subtitle \"Awaiting\" -message \"➡️ $(jq -r '.message')\" -appIcon \"https://claude.ai/images/claude_app_icon.png\" -activate \"com.mitchellh.ghostty\" -ignoreDnD"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/bin/set-title.sh \"💬 $(basename \"$CLAUDE_PROJECT_DIR\")\""
+          },
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Submarine.aiff"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/bin/set-title.sh \"💬 $(basename \"$CLAUDE_PROJECT_DIR\")\""
+          },
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Sosumi.aiff"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "terminal-notifier -title \"Claude Code\" -message \"✅ Done!\" -appIcon \"https://claude.ai/images/claude_app_icon.png\" -activate \"com.mitchellh.ghostty\" -ignoreDnD"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/bin/set-title.sh \"🤖 $(basename \"$CLAUDE_PROJECT_DIR\")\""
+          },
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Glass.aiff"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/bin/set-title.sh \"⚡ $(basename \"$CLAUDE_PROJECT_DIR\")\""
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/bin/set-title.sh \"🤖 $(basename \"$CLAUDE_PROJECT_DIR\")\""
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -n \"$TMUX\" ]; then tmux set-window-option automatic-rename on; else ~/.claude/bin/set-title.sh \"$(basename \"$PWD\")\"; fi"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/bin/statusline.sh"
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
+  }
+}
