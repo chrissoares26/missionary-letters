@@ -16,6 +16,7 @@
 - Current app scaffold: Vue 3 + Vite + Vue Router in `src/`
 
 ### 1.2 MVP Goals
+- Primary language for MVP is Brazilian Portuguese (`pt-BR`) for UI and default generated content.
 - Generate weekly campaign content: email subject/body + WhatsApp/Facebook snippets.
 - Edit and approve campaign content before sending.
 - Send individualized emails to active missionaries through Gmail.
@@ -26,6 +27,7 @@
 ### 1.3 MVP Non-Goals
 - No automated WhatsApp/Facebook publishing (copy-only).
 - No multi-user collaboration workflow beyond single primary user/admin baseline.
+- No internationalization/localization framework in MVP beyond `pt-BR` defaults.
 - No advanced analytics dashboard.
 - No HTML composer in MVP (plain text email body).
 - No per-recipient AI generation in MVP (deterministic template rendering only).
@@ -71,6 +73,9 @@ All user-owned tables require RLS with owner policy pattern based on `auth.uid()
   - `VITE_SUPABASE_URL`
   - `VITE_SUPABASE_ANON_KEY`
 - Server-side/secret values remain in Supabase Edge secret storage where applicable.
+- Localization baseline:
+  - MVP must ship with `pt-BR` as the default and primary language.
+  - i18n architecture for additional locales is deferred to V2.
 
 ## 3. Epic Roadmap (Sequential)
 

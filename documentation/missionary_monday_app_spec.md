@@ -9,6 +9,8 @@ emails every Monday using:
 - RAG-for-style AI system
 - Gmail API for sending
 - WhatsApp and Facebook via copy/paste (no automation)
+- MVP primary language: Brazilian Portuguese (`pt-BR`)
+- V2 direction: full i18n support for additional locales
 
 ---
 
@@ -102,7 +104,7 @@ Key Routes: - /missionaries - /style-library - /campaigns/new -
 - owner_id
 - topic
 - notes
-- language
+- language (default `pt-BR` in MVP)
 - status
 - approved_at
 - created_at

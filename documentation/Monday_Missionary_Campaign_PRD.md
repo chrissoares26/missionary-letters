@@ -19,6 +19,8 @@
 
 ### Goals (MVP)
 
+-   Primary product language is Brazilian Portuguese (`pt-BR`) across UI
+    and generated content defaults.
 -   Generate a weekly campaign (email + WhatsApp snippet + Facebook
     post) aligned to the mom's writing voice.
 -   Allow editing and approval of the email content before sending.
@@ -34,6 +36,8 @@
 -   No automated sending for WhatsApp or Facebook (copy/paste only).
 -   No multi-user collaboration workflows beyond single user / simple
     family admin.
+-   No multi-language UI/content localization in MVP (no full i18n
+    framework yet).
 -   No advanced analytics dashboards beyond campaign + send logs.
 -   No HTML email composer (plain text only for MVP).
 -   No per-recipient AI generation in MVP (use template placeholders +
@@ -90,6 +94,7 @@
 
 ### Later
 
+-   Internationalization (i18n) for additional locales beyond `pt-BR`.
 -   Retry failed sends.
 -   HTML email support.
 -   Bounce detection and auto-inactivation.

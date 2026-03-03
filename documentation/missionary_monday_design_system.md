@@ -14,6 +14,7 @@ Missionary Monday is a mobile-first PWA that helps one primary user (Mom) create
 - Must optimize for one high-priority weekly action: Create -> Review -> Approve -> Send.
 - Must privilege readability and large touch targets over dense data display.
 - Must communicate send status clearly (sent/failed/pending) with zero ambiguity.
+- MVP copy and UI language should default to Brazilian Portuguese (`pt-BR`); full i18n support is a V2 concern.
 
 ## 2. Design Direction
 
@@ -167,6 +168,9 @@ Respect `prefers-reduced-motion`; disable transforms and retain opacity-only tra
 
 ## 10. Content and Voice in UI
 
+- Primary UX writing language for MVP: `pt-BR`.
+- Keep terminology consistent in `pt-BR` across buttons, statuses, errors, and confirmations.
+- Plan string externalization for future i18n, but do not block MVP delivery on it.
 - Use direct, supportive microcopy: "Ready to send to 24 missionaries?"
 - Avoid technical jargon on primary actions.
 - Error copy should be actionable: what failed, what to do next.
