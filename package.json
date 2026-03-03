@@ -16,9 +16,13 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "@pinia/colada": "^0.21.7",
     "@supabase/supabase-js": "^2.98.0",
+    "@tailwindcss/vite": "^4.2.1",
+    "agent-browser": "^0.15.3",
     "pinia": "^3.0.4",
     "process": "^0.11.10",
+    "tailwindcss": "^4.2.1",
     "vue": "^3.5.29",
     "vue-router": "^5.0.3"
   },
@@ -42,6 +46,7 @@
     "prettier": "3.8.1",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
+    "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-vue-devtools": "^8.0.6",
     "vitest": "^4.0.18",
     "vue-tsc": "^3.2.5"

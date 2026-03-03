@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#2d4a45"/>
+  <!-- Envelope body -->
+  <rect x="80" y="160" width="352" height="240" rx="16" fill="#f9f6ef"/>
+  <!-- Envelope flap fold lines -->
+  <path d="M80 176 L256 296 L432 176" stroke="#d88939" stroke-width="12" fill="none" stroke-linejoin="round"/>
+  <!-- Bottom-left fold -->
+  <path d="M80 400 L196 288" stroke="#d2c7b2" stroke-width="8" fill="none"/>
+  <!-- Bottom-right fold -->
+  <path d="M432 400 L316 288" stroke="#d2c7b2" stroke-width="8" fill="none"/>
+  <!-- Cross accent -->
+  <rect x="238" y="320" width="36" height="64" rx="6" fill="#d88939"/>
+  <rect x="216" y="342" width="80" height="20" rx="6" fill="#d88939"/>
+</svg>
