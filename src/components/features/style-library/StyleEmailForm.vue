@@ -3,11 +3,6 @@ import { ref } from 'vue'
 import { useCreateStyleEmail } from '@/queries/style-library'
 import type { StyleEmailFormData } from '@/types/style-email'
 
-interface Props {
-  atCap: boolean
-}
-
-const props = defineProps<Props>()
 const emit = defineEmits<{ success: [] }>()
 
 const formData = ref<StyleEmailFormData>({
@@ -51,12 +46,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div v-if="atCap" class="rounded-lg bg-linen-100 p-4 text-sm text-forest-700">
-    Limite de 50 emails atingido. Isso é suficiente para um ótimo perfil de estilo.
-  </div>
-
-  <form v-else class="space-y-4" @submit.prevent="handleSubmit">
-    <h2 class="text-lg font-semibold text-ink-900">Adicionar Email</h2>
+  <form class="space-y-4" @submit.prevent="handleSubmit">
 
     <div v-if="errors.form" class="rounded-md bg-red-50 p-3 text-sm text-red-700">
       {{ errors.form }}

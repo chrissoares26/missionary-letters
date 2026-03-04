@@ -393,11 +393,11 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 
 ---
 
-## Epic 4: Style Library and RAG Preparation
+## Epic 4: Style Library and RAG Preparation ✅ COMPLETE
 
 **Objective:** Build the style signal pipeline required for consistent campaign generation.
 
-**Session:** `2026-03-04-1632.md`
+**Sessions:** `2026-03-04-1632.md`, `2026-03-04-2149.md`
 
 ### Story 4.1: Style Email Ingestion Workflow ✅
 **Scope**
@@ -420,11 +420,16 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - `src/types/style-email.ts` — `StyleEmailFormData` interface + `EmbeddingStatus` type
 - `src/api/style-library.ts` — `getStyleEmails`, `getStyleEmailCount`, `createStyleEmail`, `deleteStyleEmail`, `triggerEmbedding` (fire-and-forget)
 - `src/queries/style-library.ts` — `useStyleEmailsQuery`, `useStyleEmailCountQuery`, `useCreateStyleEmail`, `useDeleteStyleEmail` (Pinia Colada)
-- `src/components/features/style-library/StyleEmailForm.vue` — form with validation, uses `isLoading` (not `status`) for submit state
-- `src/components/features/style-library/StyleEmailList.vue` — list with Realtime subscription for live badge updates
+- `src/components/features/style-library/StyleEmailForm.vue` — form with validation, uses `isLoading` (not `status`) for submit state, opens in modal
+- `src/components/features/style-library/StyleEmailList.vue` — list with Realtime subscription for live badge updates, collapsible (shows 5 preview, "Ver todos" to expand)
 - `src/components/features/style-library/EmbeddingStatusBadge.vue` — amber "Processando..." → green "Pronto ✓" via Realtime; red "Erro" after 60s timeout
-- `src/pages/style-library.vue` — progress bar, ready banner (auto-dismiss 4s), email count display
+- `src/pages/style-library.vue` — progress bar, ready banner (auto-dismiss 4s), "+ Adicionar Email" button opens modal, email count display
 - Migration: `enable_realtime_style_emails` — `style_emails` added to `supabase_realtime` publication
+
+**UX Improvements** (added 2026-03-04):
+- Form moved to modal overlay (prevents form from being pushed off-screen when profile generates)
+- Email list collapsible: shows 5 most recent by default, "Ver todos os X emails" button to expand
+- Consistent modal pattern with missionaries page (slide-up animation, backdrop, close button)
 
 ### Story 4.2: Embedding Generation (`style_embed_upsert`) ✅
 **Scope**
@@ -449,7 +454,7 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - CORS preflight handled explicitly (`OPTIONS` → 200) before auth check
 - Fire-and-forget: `triggerEmbedding(id)` in `useCreateStyleEmail` mutation; badge updates via Realtime without polling
 
-### Story 4.3: Similarity Retrieval (`style_match`)
+### Story 4.3: Similarity Retrieval (`style_match`) ✅
 **Scope**
 - Retrieve top-K examples for campaign topic context.
 
@@ -460,10 +465,20 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Story 4.2.
 
 **Acceptance Criteria**
-- K defaults to 6.
-- Retrieval output is compatible with `draft_generate`.
+- ✅ K defaults to 6.
+- ✅ Retrieval output is compatible with `draft_generate`.
 
-### Story 4.4: Style Profile Synthesis
+**Implementation Notes**
+- `supabase/functions/style_match/index.ts` — Edge Function with `verify_jwt: false`, CORS headers
+- Dual-client pattern: `userClient` for auth; `adminClient` for DB operations
+- Generates query embedding via OpenAI `text-embedding-3-small`
+- PostgreSQL RPC function `match_style_emails` for vector similarity search using pgvector `<=>` operator
+- Returns top-K matches sorted by cosine similarity (1 - distance)
+- Min threshold enforcement: requires at least 3 emails with embeddings before retrieval
+- Fallback behavior if RPC not available (direct query without similarity ranking)
+- Migration: `create_match_style_emails_function` — PostgreSQL function for vector similarity
+
+### Story 4.4: Style Profile Synthesis ✅
 **Scope**
 - Persist aggregate style traits in `style_profile`.
 
@@ -474,11 +489,26 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Story 4.2.
 
 **Acceptance Criteria**
-- Profile data can be consumed by generation pipeline.
+- ✅ Profile data can be consumed by generation pipeline.
+- ✅ Min 3 emails required for profile generation.
+- ✅ Profile includes tone, common phrases, sentence structure, vocabulary, emotional patterns, and unique voice.
+
+**Implementation Notes**
+- `supabase/functions/style_profile_generate/index.ts` — Edge Function using OpenAI `gpt-4o-mini` for style analysis
+- Analyzes up to 20 most recent style emails (to stay within token limits)
+- Structured JSON output with: tone, common_phrases, sentence_structure, vocabulary, emotional_expression, structural_preferences, unique_voice, summary
+- Enriched with metadata: generated_at, email_count, analyzed_count, tokens_used
+- Upserts into `style_profile` table (one profile per user)
+- `src/api/style-library.ts` — `getStyleProfile`, `generateStyleProfile` functions
+- `src/queries/style-library.ts` — `useStyleProfileQuery`, `useGenerateStyleProfile` mutations
+- `src/components/features/style-library/StyleProfileCard.vue` — UI card displaying profile with "Gerar Perfil" / "Regenerar" button
+- Integrated into `src/pages/style-library.vue` — shows profile card above email list
+- Uses `.maybeSingle()` to handle null profiles gracefully (no 406 errors)
 
 **Epic 4 Exit Criteria**
-- ✅ Stories 4.1 + 4.2 complete — style ingestion and embedding generation implemented and browser-verified.
-- Stories 4.3 + 4.4 pending — required for campaign generation (Epic 5 dependency).
+- ✅ All stories 4.1, 4.2, 4.3, 4.4 complete — full RAG pipeline ready for Epic 5 (Campaign Draft Generation).
+- ✅ UX improvements applied (modal form, collapsible list) — production-ready interface.
+- ✅ Browser-tested and user-approved — all features working as expected.
 
 ---
 

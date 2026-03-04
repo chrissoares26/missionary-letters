@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { supabase } from '@/utils/supabase'
 import { useDeleteStyleEmail } from '@/queries/style-library'
 import EmbeddingStatusBadge from './EmbeddingStatusBadge.vue'
@@ -11,6 +11,19 @@ interface Props {
 
 const props = defineProps<Props>()
 const emit = defineEmits<{ deleted: [id: string] }>()
+
+const PREVIEW_LIMIT = 5
+const isExpanded = ref(false)
+
+const displayedEmails = computed(() => {
+  if (isExpanded.value || props.emails.length <= PREVIEW_LIMIT) {
+    return props.emails
+  }
+  return props.emails.slice(0, PREVIEW_LIMIT)
+})
+
+const hasMore = computed(() => props.emails.length > PREVIEW_LIMIT)
+const remainingCount = computed(() => props.emails.length - PREVIEW_LIMIT)
 
 const { mutateAsync: deleteEmail } = useDeleteStyleEmail()
 const deletingId = ref<string | null>(null)
@@ -58,16 +71,17 @@ async function confirmDelete(id: string) {
 </script>
 
 <template>
-  <div v-if="emails.length === 0" class="py-8 text-center text-sm text-(--text-secondary)">
-    Nenhum email adicionado ainda. Use o formulário abaixo para começar.
-  </div>
+  <div>
+    <div v-if="emails.length === 0" class="py-8 text-center text-sm text-(--text-secondary)">
+      Nenhum email adicionado ainda. Clique em "Adicionar Email" para começar.
+    </div>
 
-  <ul v-else class="divide-y divide-stone-300">
-    <li
-      v-for="email in emails"
-      :key="email.id"
-      class="flex items-start justify-between gap-3 py-3"
-    >
+    <ul v-else class="divide-y divide-stone-300">
+      <li
+        v-for="email in displayedEmails"
+        :key="email.id"
+        class="flex items-start justify-between gap-3 py-3"
+      >
       <div class="min-w-0 flex-1">
         <p class="truncate text-sm font-medium text-ink-900">{{ email.subject }}</p>
         <p v-if="email.source_label" class="mt-0.5 text-xs text-(--text-secondary)">
@@ -96,6 +110,18 @@ async function confirmDelete(id: string) {
           </svg>
         </button>
       </div>
-    </li>
-  </ul>
+      </li>
+    </ul>
+
+    <!-- Expand/Collapse button -->
+    <div v-if="hasMore" class="mt-4 text-center">
+      <button
+        type="button"
+        @click="isExpanded = !isExpanded"
+        class="text-sm font-medium text-forest-700 hover:text-forest-800 transition-colors"
+      >
+        {{ isExpanded ? 'Mostrar menos' : `Ver todos os ${emails.length} emails` }}
+      </button>
+    </div>
+  </div>
 </template>

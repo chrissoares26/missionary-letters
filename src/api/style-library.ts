@@ -1,5 +1,5 @@
 import { supabase } from '@/utils/supabase'
-import type { StyleEmail, Database } from '@/types/database'
+import type { StyleEmail, StyleProfile, Database } from '@/types/database'
 import type { StyleEmailFormData } from '@/types/style-email'
 
 type StyleEmailInsert = Database['public']['Tables']['style_emails']['Insert']
@@ -62,4 +62,34 @@ export async function triggerEmbedding(id: string): Promise<void> {
   })
   // Fire-and-forget: badge will show status via Realtime
   if (error) console.warn('Embedding trigger failed:', error.message)
+}
+
+export async function getStyleProfile(): Promise<StyleProfile | null> {
+  const { data: session, error: authError } = await supabase.auth.getSession()
+  if (authError || !session.session?.user) {
+    throw new Error('User must be authenticated to fetch style profile')
+  }
+
+  const { data, error } = await supabase
+    .from('style_profile')
+    .select('*')
+    .eq('owner_id', session.session.user.id)
+    .maybeSingle()
+
+  if (error) {
+    throw new Error(`Failed to fetch style profile: ${error.message}`)
+  }
+
+  return data
+}
+
+export async function generateStyleProfile(): Promise<StyleProfile> {
+  const { data, error } = await supabase.functions.invoke('style_profile_generate', {
+    body: {},
+  })
+
+  if (error) throw new Error(`Failed to generate style profile: ${error.message}`)
+  if (!data?.success) throw new Error('Style profile generation failed')
+
+  return data.profile
 }

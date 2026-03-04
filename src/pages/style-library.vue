@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useStyleEmailsQuery, useStyleEmailCountQuery } from '@/queries/style-library'
 import StyleEmailList from '@/components/features/style-library/StyleEmailList.vue'
 import StyleEmailForm from '@/components/features/style-library/StyleEmailForm.vue'
+import StyleProfileCard from '@/components/features/style-library/StyleProfileCard.vue'
 
 const ONBOARDING_MIN = 10
 const EMAIL_CAP = 50
@@ -29,6 +30,22 @@ watch(isOnboarding, (nowOnboarding, wasOnboarding) => {
     }, 4000)
   }
 })
+
+// Modal state
+const isFormOpen = ref(false)
+
+function openAddForm() {
+  if (atCap.value) return
+  isFormOpen.value = true
+}
+
+function closeForm() {
+  isFormOpen.value = false
+}
+
+function handleFormSuccess() {
+  closeForm()
+}
 </script>
 
 <template>
@@ -70,6 +87,30 @@ watch(isOnboarding, (nowOnboarding, wasOnboarding) => {
       {{ emailCount }} emails adicionados
     </div>
 
+    <!-- Style Profile Card -->
+    <div class="mb-6">
+      <StyleProfileCard :email-count="emailCount" />
+    </div>
+
+    <!-- Add Email Button -->
+    <div class="mb-6">
+      <button
+        v-if="atCap"
+        disabled
+        class="w-full rounded-lg bg-stone-300 px-4 py-3 text-sm font-medium text-stone-500 cursor-not-allowed"
+      >
+        Limite de 50 emails atingido
+      </button>
+      <button
+        v-else
+        type="button"
+        @click="openAddForm"
+        class="w-full rounded-lg bg-forest-700 px-4 py-3 text-sm font-medium text-white hover:bg-forest-800 transition-colors"
+      >
+        + Adicionar Email
+      </button>
+    </div>
+
     <!-- Email list -->
     <div class="mb-8">
       <div v-if="isLoading" class="py-8 text-center text-sm text-[var(--text-secondary)]">
@@ -78,10 +119,61 @@ watch(isOnboarding, (nowOnboarding, wasOnboarding) => {
       <StyleEmailList v-else :emails="emails ?? []" />
     </div>
 
-    <!-- Divider -->
-    <div class="mb-6 border-t border-stone-300" />
+    <!-- Form modal -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-opacity duration-200"
+        leave-active-class="transition-opacity duration-200"
+        enter-from-class="opacity-0"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="isFormOpen"
+          class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          @click.self="closeForm"
+        >
+          <!-- Backdrop -->
+          <div class="absolute inset-0 bg-ink-900/40 backdrop-blur-sm" />
 
-    <!-- Add form -->
-    <StyleEmailForm :at-cap="atCap" />
+          <!-- Modal content -->
+          <Transition
+            enter-active-class="transition-transform duration-200"
+            leave-active-class="transition-transform duration-200"
+            enter-from-class="translate-y-full sm:translate-y-0 sm:scale-95"
+            leave-to-class="translate-y-full sm:translate-y-0 sm:scale-95"
+          >
+            <div
+              v-if="isFormOpen"
+              class="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-2xl shadow-md max-h-[90vh] overflow-y-auto"
+              style="padding-bottom: env(safe-area-inset-bottom, 0px)"
+            >
+              <!-- Modal header -->
+              <div class="sticky top-0 bg-white border-b border-stone-300 px-6 py-4 rounded-t-3xl sm:rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                  <h2 class="text-xl font-bold text-ink-900 font-serif">
+                    Adicionar Email
+                  </h2>
+                  <button
+                    type="button"
+                    @click="closeForm"
+                    class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-linen-100 text-forest-700 transition-colors"
+                    aria-label="Fechar"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Modal body -->
+              <div class="p-6">
+                <StyleEmailForm @success="handleFormSuccess" />
+              </div>
+            </div>
+          </Transition>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>

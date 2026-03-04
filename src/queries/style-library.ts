@@ -5,6 +5,8 @@ import {
   createStyleEmail,
   deleteStyleEmail,
   triggerEmbedding,
+  getStyleProfile,
+  generateStyleProfile,
 } from '@/api/style-library'
 import type { StyleEmailFormData } from '@/types/style-email'
 
@@ -49,6 +51,25 @@ export function useDeleteStyleEmail() {
     onSuccess: () => {
       queryCache.invalidateQueries({ key: ['style-emails'] })
       queryCache.invalidateQueries({ key: ['style-emails-count'] })
+    },
+  })
+}
+
+export function useStyleProfileQuery() {
+  return useQuery({
+    key: ['style-profile'],
+    query: () => getStyleProfile(),
+    staleTime: 1000 * 60 * 5, // 5 minutes — profile doesn't change often
+  })
+}
+
+export function useGenerateStyleProfile() {
+  const queryCache = useQueryCache()
+
+  return useMutation({
+    mutation: () => generateStyleProfile(),
+    onSuccess: () => {
+      queryCache.invalidateQueries({ key: ['style-profile'] })
     },
   })
 }
