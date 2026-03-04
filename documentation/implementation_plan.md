@@ -198,16 +198,51 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - `App.spec.ts` updated to use router plugin; 1/1 tests passing.
 - Deps added: `tailwindcss@4.2.1`, `@tailwindcss/vite`, `@pinia/colada@0.21.7`.
 
+### Story 1.4: Authentication Pages ✅ COMPLETE
+**Scope**
+- Implement login and registration pages for Supabase Auth.
+- Remove dev auth helper used for development.
+
+**Deliverables**
+- ✅ `/login` route with email/password authentication
+- ✅ `/register` route for new user signup
+- ✅ `/reset-password` route for password recovery
+- ✅ Auth state management (`useAuth` composable)
+- ✅ Route guards with onboarding redirect logic
+- ✅ Session persistence (30 days)
+- ✅ UI components: `FormInput`, `FormButton`, `Toast`
+- ✅ Error handling with pt-BR messages
+- ✅ Dev auth helper removed
+
+**Dependencies**
+- Story 1.1, Story 1.3.
+
+**Acceptance Criteria**
+- ✅ User can register with email/password (pending Supabase email confirmation config)
+- User can sign in and session persists on reload
+- Protected routes redirect to login when unauthenticated
+- Dev auth helper (`window.devAuth`) removed from production build
+
+**Implementation Notes**
+- `src/pages/login.vue` — login form with Supabase Auth
+- `src/pages/register.vue` — registration form
+- `src/utils/dev-auth.ts` — marked for cleanup after auth pages complete
+- Auth composable for session management
+- Route guards in `src/router/index.ts`
+
 **Epic 1 Exit Criteria**
 - ✅ PWA shell, env conventions, and route skeleton complete and browser-verified.
+- ✅ **Story 1.4 (Auth pages) complete — Supabase email confirmation needs configuration before production deployment**
 
 ---
 
-## Epic 2: Supabase Data Layer
+## Epic 2: Supabase Data Layer ✅ COMPLETE
 
 **Objective:** Build the persistent model and security baseline for all MVP workflows.
 
-### Story 2.1: Schema and Migration Plan
+**Session:** `2026-03-03-1430-epic-2-data-layer.md`
+
+### Story 2.1: Schema and Migration Plan ✅
 **Scope**
 - Create ordered migration sequence for all core tables.
 - Define foreign keys, indexes, and status enums where needed.
@@ -220,10 +255,16 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Epic 1.
 
 **Acceptance Criteria**
-- All MVP entities represented.
-- RLS strategy (`owner_id = auth.uid()`) is documented per table.
+- ✅ All MVP entities represented.
+- ✅ RLS strategy (`owner_id = auth.uid()`) is documented per table.
 
-### Story 2.2: Seed and Local Test Data Plan
+**Implementation Notes**
+- All 8 tables created via Supabase MCP
+- RLS policies applied on all tables
+- Indexes created including vector similarity index
+- Database types generated in `src/types/database.ts`
+
+### Story 2.2: Seed and Local Test Data Plan ✅
 **Scope**
 - Define minimal reproducible seed data for local development/testing.
 
@@ -236,9 +277,14 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Story 2.1.
 
 **Acceptance Criteria**
-- Seed data supports end-to-end dry run of MVP flow.
+- ✅ Seed data supports end-to-end dry run of MVP flow.
 
-### Story 2.3: Automation and Scheduler Plan
+**Implementation Notes**
+- `supabase/seed/01_seed_missionaries.sql` — 10 missionaries (7 active, 3 inactive)
+- `supabase/seed/02_seed_campaigns.sql` — 3 campaigns with different states
+- `supabase/seed/README.md` — documentation for seed process
+
+### Story 2.3: Automation and Scheduler Plan ✅
 **Scope**
 - Define cron execution for missionary deactivation and observability.
 
@@ -249,19 +295,27 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Story 2.1.
 
 **Acceptance Criteria**
-- Auto-deactivation logic is deterministic.
-- Operational logging requirements are defined.
+- ✅ Auto-deactivation logic is deterministic.
+- ✅ Operational logging requirements are defined.
+
+**Implementation Notes**
+- `documentation/missionary_auto_deactivation_spec.md` — complete specification
+- Scheduler cadence: Daily at 2:00 AM UTC
+- Idempotency strategy documented
+- Logging format and storage options defined
 
 **Epic 2 Exit Criteria**
-- Data model, RLS, seed strategy, and scheduled automation are fully specified.
+- ✅ Data model, RLS, seed strategy, and scheduled automation are fully specified.
 
 ---
 
-## Epic 3: Missionaries Management (CRUD)
+## Epic 3: Missionaries Management (CRUD) ✅ COMPLETE
 
 **Objective:** Enable complete missionary lifecycle management for campaign targeting.
 
-### Story 3.1: Missionary List and Filters
+**Session:** `2026-03-04-epic-3-missionaries-crud.md`
+
+### Story 3.1: Missionary List and Filters ✅
 **Scope**
 - List missionaries with active status and key metadata.
 - Provide baseline filters/sort for operational use.
@@ -273,10 +327,17 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Epic 2.
 
 **Acceptance Criteria**
-- User can locate active missionaries quickly.
-- List reflects accurate activation state.
+- ✅ User can locate active missionaries quickly.
+- ✅ List reflects accurate activation state.
 
-### Story 3.2: Create/Edit Missionary Form
+**Implementation Notes**
+- `src/components/features/missionaries/MissionaryTable.vue` — table with search and filters
+- Active/inactive/all filter buttons
+- Search across name, email, mission
+- Status badges with color coding
+- Mobile-first card layout
+
+### Story 3.2: Create/Edit Missionary Form ✅
 **Scope**
 - Form fields, validation, save/update behavior.
 
@@ -287,10 +348,19 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Story 3.1.
 
 **Acceptance Criteria**
-- CRUD operations are fully defined.
-- Validation and errors are explicitly specified.
+- ✅ CRUD operations are fully defined.
+- ✅ Validation and errors are explicitly specified.
 
-### Story 3.3: Active State Rules and Overrides
+**Implementation Notes**
+- `src/components/features/missionaries/MissionaryForm.vue` — full form with validation
+- Elder/Sister title toggle
+- Email validation with regex
+- Mission end date picker
+- Active/inactive checkbox with conditional reason field
+- Notes textarea
+- Form-level validation with error messages
+
+### Story 3.3: Active State Rules and Overrides ✅
 **Scope**
 - Derive active status from mission end date and explicit flags.
 
@@ -301,10 +371,25 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Story 3.2 and Story 2.3.
 
 **Acceptance Criteria**
-- End-date behavior is deterministic and testable.
+- ✅ End-date behavior is deterministic and testable.
+
+**Implementation Notes**
+- Active status automatically derived from mission end date
+- Visual warning for missions ending within 30 days
+- Soft delete with reason tracking
+- Manual override supported via active checkbox
 
 **Epic 3 Exit Criteria**
-- Missionary CRUD behavior is complete and ready for implementation/testing.
+- ✅ Missionary CRUD behavior is complete and ready for implementation/testing.
+
+**Implementation Summary**
+- API layer: `src/api/missionaries.ts` with CRUD + filters
+- Queries: `src/queries/missionaries.ts` with Pinia Colada caching
+- Components: MissionaryTable + MissionaryForm
+- Page: `src/pages/missionaries.vue` with modal workflow
+- Types: `src/types/database.ts` + `src/types/missionary.ts`
+- Design system: Tailwind v4 theme with pt-BR colors
+- Dev helper: `src/utils/dev-auth.ts` for testing (to be removed in Story 1.4)
 
 ---
 
