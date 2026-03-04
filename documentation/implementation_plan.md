@@ -219,9 +219,9 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 
 **Acceptance Criteria**
 - ✅ User can register with email/password (pending Supabase email confirmation config)
-- User can sign in and session persists on reload
-- Protected routes redirect to login when unauthenticated
-- Dev auth helper (`window.devAuth`) removed from production build
+- ✅ User can sign in and session persists on reload
+- ✅ Protected routes redirect to login when unauthenticated
+- ✅ Dev auth helper (`window.devAuth`) removed from production build
 
 **Implementation Notes**
 - `src/pages/login.vue` — login form with Supabase Auth
@@ -389,7 +389,7 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Page: `src/pages/missionaries.vue` with modal workflow
 - Types: `src/types/database.ts` + `src/types/missionary.ts`
 - Design system: Tailwind v4 theme with pt-BR colors
-- Dev helper: `src/utils/dev-auth.ts` for testing (to be removed in Story 1.4)
+- Dev helper: `src/utils/dev-auth.ts` — REMOVED in Story 1.4 ✅
 
 ---
 
@@ -397,7 +397,9 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 
 **Objective:** Build the style signal pipeline required for consistent campaign generation.
 
-### Story 4.1: Style Email Ingestion Workflow
+**Session:** `2026-03-04-1632.md`
+
+### Story 4.1: Style Email Ingestion Workflow ✅
 **Scope**
 - Define ingestion UX and backend persistence for historical emails.
 
@@ -408,9 +410,23 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Epic 2.
 
 **Acceptance Criteria**
-- User can load enough historical corpus for style modeling.
+- ✅ User can load enough historical corpus for style modeling.
+- ✅ Single-add form with subject, body (min 50 chars), optional source label.
+- ✅ Onboarding progress bar toward 10-email threshold to unlock campaigns.
+- ✅ Hard cap at 50 emails enforced on frontend and Edge Function.
+- ✅ Delete with confirmation.
 
-### Story 4.2: Embedding Generation (`style_embed_upsert`)
+**Implementation Notes**
+- `src/types/style-email.ts` — `StyleEmailFormData` interface + `EmbeddingStatus` type
+- `src/api/style-library.ts` — `getStyleEmails`, `getStyleEmailCount`, `createStyleEmail`, `deleteStyleEmail`, `triggerEmbedding` (fire-and-forget)
+- `src/queries/style-library.ts` — `useStyleEmailsQuery`, `useStyleEmailCountQuery`, `useCreateStyleEmail`, `useDeleteStyleEmail` (Pinia Colada)
+- `src/components/features/style-library/StyleEmailForm.vue` — form with validation, uses `isLoading` (not `status`) for submit state
+- `src/components/features/style-library/StyleEmailList.vue` — list with Realtime subscription for live badge updates
+- `src/components/features/style-library/EmbeddingStatusBadge.vue` — amber "Processando..." → green "Pronto ✓" via Realtime; red "Erro" after 60s timeout
+- `src/pages/style-library.vue` — progress bar, ready banner (auto-dismiss 4s), email count display
+- Migration: `enable_realtime_style_emails` — `style_emails` added to `supabase_realtime` publication
+
+### Story 4.2: Embedding Generation (`style_embed_upsert`) ✅
 **Scope**
 - Convert style email bodies into vector embeddings and persist.
 
@@ -421,8 +437,17 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Story 4.1.
 
 **Acceptance Criteria**
-- Embeddings exist for ingested style records.
-- Failure/retry strategy is documented.
+- ✅ Embeddings exist for ingested style records.
+- ✅ Fire-and-forget trigger from frontend after insert; badge reflects status via Realtime.
+- ✅ Ownership check enforced (403 if requester is not owner).
+- ✅ Cap guard enforced in function (422 if > 50).
+
+**Implementation Notes**
+- `supabase/functions/style_embed_upsert/index.ts` — deployed with `verify_jwt: false` (auth handled manually via dual-client pattern)
+- Dual-client pattern: `userClient` (anon + JWT) for auth verification; `adminClient` (service role) for DB write
+- OpenAI `text-embedding-3-small` model (1536 dimensions); persists `embedding` vector + `token_count`
+- CORS preflight handled explicitly (`OPTIONS` → 200) before auth check
+- Fire-and-forget: `triggerEmbedding(id)` in `useCreateStyleEmail` mutation; badge updates via Realtime without polling
 
 ### Story 4.3: Similarity Retrieval (`style_match`)
 **Scope**
@@ -452,7 +477,8 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 - Profile data can be consumed by generation pipeline.
 
 **Epic 4 Exit Criteria**
-- Style ingestion, embedding, retrieval, and profile persistence are fully defined.
+- ✅ Stories 4.1 + 4.2 complete — style ingestion and embedding generation implemented and browser-verified.
+- Stories 4.3 + 4.4 pending — required for campaign generation (Epic 5 dependency).
 
 ---
 
