@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useQueryCache } from '@pinia/colada'
 import {
   useCampaignQuery,
   useCampaignContentQuery,
@@ -9,16 +10,27 @@ import {
   useDeleteCampaign,
   useRegenerateDraft,
 } from '@/queries/campaigns'
+import {
+  useGoogleAccountQuery,
+  useCampaignRecipientsQuery,
+  useRecipientsRealtime,
+  useSendCampaign,
+} from '@/queries/gmail'
 import CampaignHeader from '@/components/features/campaigns/CampaignHeader.vue'
 import CampaignEditor from '@/components/features/campaigns/CampaignEditor.vue'
 import CampaignActions from '@/components/features/campaigns/CampaignActions.vue'
+import RecipientStatusList from '@/components/features/campaigns/RecipientStatusList.vue'
 
 const route = useRoute()
 const router = useRouter()
 const campaignId = route.params.id as string
+const queryCache = useQueryCache()
 
 const { data: campaign, status: campaignStatus } = useCampaignQuery(campaignId)
 const { data: content, status: contentStatus } = useCampaignContentQuery(campaignId)
+const { data: googleAccount } = useGoogleAccountQuery()
+const recipientsQuery = useCampaignRecipientsQuery(campaignId)
+const sendCampaignMutation = useSendCampaign()
 const approveMutation = useApproveCampaign()
 const unapproveMutation = useUnapproveCampaign()
 const deleteMutation = useDeleteCampaign()
@@ -26,6 +38,15 @@ const regenerateMutation = useRegenerateDraft()
 
 const showToast = ref(false)
 const toastMessage = ref('')
+const showRecipients = ref(false)
+
+const { subscribe: subscribeRecipients, unsubscribe: unsubscribeRecipients } = useRecipientsRealtime(
+  campaignId,
+  () => {
+    queryCache.invalidateQueries({ key: ['campaign-recipients', campaignId] })
+    queryCache.invalidateQueries({ key: ['campaign', campaignId] })
+  },
+)
 
 const generationStatus = computed<'idle' | 'generating' | 'success' | 'error'>(() => {
   if (campaign.value?.status !== 'draft') return 'idle'
@@ -36,6 +57,8 @@ const generationStatus = computed<'idle' | 'generating' | 'success' | 'error'>((
 })
 
 const hasContent = computed(() => !!content.value)
+const recipients = computed(() => recipientsQuery.data.value ?? [])
+const recipientsLoading = computed(() => recipientsQuery.status.value === 'pending')
 
 async function handleApprove() {
   if (!campaign.value) return
@@ -86,9 +109,28 @@ async function handleRegenerate() {
   }
 }
 
-function handleSend() {
-  // Epic 6 implementation
-  alert('Funcionalidade de envio será implementada no Epic 6')
+async function handleSend() {
+  if (sendCampaignMutation.isLoading.value) return
+
+  if (!googleAccount.value) {
+    if (confirm('Gmail não conectado. Ir para Configurações para conectar?')) {
+      router.push('/settings')
+    }
+    return
+  }
+
+  if (!confirm('Enviar campanha para todos os missionários ativos? Esta ação não pode ser desfeita.')) return
+
+  showRecipients.value = true
+  subscribeRecipients()
+
+  try {
+    await sendCampaignMutation.mutateAsync(campaignId)
+    queryCache.invalidateQueries({ key: ['campaign', campaignId] })
+  } catch (error) {
+    console.error('Failed to send campaign:', error)
+    alert('Erro ao enviar campanha')
+  }
 }
 
 function handleCopy(text: string, type: string) {
@@ -98,6 +140,19 @@ function handleCopy(text: string, type: string) {
     showToast.value = false
   }, 2000)
 }
+
+watch(
+  () => campaign.value?.status,
+  (status) => {
+    if (status === 'sending' || status === 'sent' || status === 'failed') {
+      showRecipients.value = true
+      subscribeRecipients()
+    } else {
+      unsubscribeRecipients()
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -166,6 +221,13 @@ function handleCopy(text: string, type: string) {
           @unapprove="handleUnapprove"
           @send="handleSend"
         />
+
+        <div v-if="showRecipients" class="mt-4">
+          <RecipientStatusList
+            :recipients="recipients"
+            :is-loading="recipientsLoading || sendCampaignMutation.isLoading.value"
+          />
+        </div>
       </template>
 
       <!-- Toast notification -->
