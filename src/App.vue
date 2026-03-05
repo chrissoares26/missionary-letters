@@ -2,6 +2,7 @@
 import { RouterView } from 'vue-router'
 import BottomNav from '@/components/layout/BottomNav.vue'
 import Toast from '@/components/ui/Toast.vue'
+import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import { useToast } from '@/composables/useToast'
 
 const { toasts, removeToast } = useToast()
@@ -17,6 +18,8 @@ const { toasts, removeToast } = useToast()
     </main>
 
     <BottomNav />
+
+    <ConfirmModal />
 
     <!-- Toast container -->
     <div class="fixed left-0 right-0 top-0 z-50 flex flex-col items-center gap-2 p-4">

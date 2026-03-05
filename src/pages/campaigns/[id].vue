@@ -20,6 +20,8 @@ import CampaignHeader from '@/components/features/campaigns/CampaignHeader.vue'
 import CampaignEditor from '@/components/features/campaigns/CampaignEditor.vue'
 import CampaignActions from '@/components/features/campaigns/CampaignActions.vue'
 import RecipientStatusList from '@/components/features/campaigns/RecipientStatusList.vue'
+import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
 
 const route = useRoute()
 const router = useRouter()
@@ -36,9 +38,9 @@ const unapproveMutation = useUnapproveCampaign()
 const deleteMutation = useDeleteCampaign()
 const regenerateMutation = useRegenerateDraft()
 
-const showToast = ref(false)
-const toastMessage = ref('')
 const showRecipients = ref(false)
+const { success: showToastSuccess, error: showToastError } = useToast()
+const { confirm } = useConfirm()
 
 const { subscribe: subscribeRecipients, unsubscribe: unsubscribeRecipients } = useRecipientsRealtime(
   campaignId,
@@ -67,7 +69,7 @@ async function handleApprove() {
     await approveMutation.mutateAsync(campaign.value.id)
   } catch (error) {
     console.error('Failed to approve:', error)
-    alert('Erro ao aprovar campanha')
+    showToastError('Erro ao aprovar campanha')
   }
 }
 
@@ -78,34 +80,44 @@ async function handleUnapprove() {
     await unapproveMutation.mutateAsync(campaign.value.id)
   } catch (error) {
     console.error('Failed to unapprove:', error)
-    alert('Erro ao voltar para rascunho')
+    showToastError('Erro ao voltar para rascunho')
   }
 }
 
 async function handleDelete() {
   if (!campaign.value) return
 
-  if (!confirm('Tem certeza que deseja excluir esta campanha?')) return
+  const confirmed = await confirm({
+    title: 'Excluir campanha?',
+    message: 'Esta ação não pode ser desfeita. Todo o conteúdo gerado será perdido.',
+    confirmLabel: 'Excluir',
+  })
+  if (!confirmed) return
 
   try {
     await deleteMutation.mutateAsync(campaign.value.id)
     router.push('/campaigns')
   } catch (error) {
     console.error('Failed to delete:', error)
-    alert('Erro ao excluir campanha')
+    showToastError('Erro ao excluir campanha')
   }
 }
 
 async function handleRegenerate() {
   if (!campaign.value) return
 
-  if (!confirm('Tem certeza que deseja regenerar o rascunho? O conteúdo atual será perdido.')) return
+  const confirmed = await confirm({
+    title: 'Regenerar rascunho?',
+    message: 'O conteúdo atual será substituído por um novo rascunho gerado pela IA.',
+    confirmLabel: 'Regenerar',
+  })
+  if (!confirmed) return
 
   try {
     await regenerateMutation.mutateAsync(campaign.value.id)
   } catch (error) {
     console.error('Failed to regenerate:', error)
-    alert('Erro ao regenerar rascunho')
+    showToastError('Erro ao regenerar rascunho')
   }
 }
 
@@ -113,13 +125,22 @@ async function handleSend() {
   if (sendCampaignMutation.isLoading.value) return
 
   if (!googleAccount.value) {
-    if (confirm('Gmail não conectado. Ir para Configurações para conectar?')) {
-      router.push('/settings')
-    }
+    const goToSettings = await confirm({
+      title: 'Gmail não conectado',
+      message: 'Conecte sua conta Gmail nas Configurações para enviar campanhas.',
+      confirmLabel: 'Ir para Configurações',
+      cancelLabel: 'Agora não',
+    })
+    if (goToSettings) router.push('/settings')
     return
   }
 
-  if (!confirm('Enviar campanha para todos os missionários ativos? Esta ação não pode ser desfeita.')) return
+  const confirmed = await confirm({
+    title: 'Enviar campanha?',
+    message: 'Será enviado um email personalizado para cada missionário ativo. Esta ação não pode ser desfeita.',
+    confirmLabel: 'Enviar',
+  })
+  if (!confirmed) return
 
   showRecipients.value = true
   subscribeRecipients()
@@ -129,16 +150,12 @@ async function handleSend() {
     queryCache.invalidateQueries({ key: ['campaign', campaignId] })
   } catch (error) {
     console.error('Failed to send campaign:', error)
-    alert('Erro ao enviar campanha')
+    showToastError('Erro ao enviar campanha')
   }
 }
 
 function handleCopy(text: string, type: string) {
-  toastMessage.value = `${type} copiado!`
-  showToast.value = true
-  setTimeout(() => {
-    showToast.value = false
-  }, 2000)
+  showToastSuccess(`${type} copiado!`, 2000)
 }
 
 watch(
@@ -229,16 +246,6 @@ watch(
           />
         </div>
       </template>
-
-      <!-- Toast notification -->
-      <Teleport to="body">
-        <div
-          v-if="showToast"
-          class="fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 bg-gray-900 text-white rounded-lg shadow-lg animate-fade-in"
-        >
-          {{ toastMessage }}
-        </div>
-      </Teleport>
     </div>
   </div>
 </template>

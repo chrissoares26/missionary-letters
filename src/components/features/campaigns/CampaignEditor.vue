@@ -3,6 +3,7 @@ import { ref, watch, computed } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
 import type { CampaignContent } from '@/types/database'
 import { useUpdateCampaignContent } from '@/queries/campaigns'
+import { useToast } from '@/composables/useToast'
 import ImageUploader from './ImageUploader.vue'
 
 interface Props {
@@ -17,6 +18,7 @@ const emit = defineEmits<{
 }>()
 
 const updateMutation = useUpdateCampaignContent()
+const { error: showToastError } = useToast()
 const saving = ref(false)
 const lastSaved = ref<Date | null>(null)
 
@@ -53,7 +55,7 @@ const saveContent = useDebounceFn(async () => {
     lastSaved.value = new Date()
   } catch (error) {
     console.error('Auto-save failed:', error)
-    alert('Erro ao salvar. Tentando novamente...')
+    showToastError('Erro ao salvar. Tentando novamente...')
     // Retry after 2s
     setTimeout(saveContent, 2000)
   } finally {

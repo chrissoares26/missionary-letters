@@ -16,6 +16,7 @@ const emit = defineEmits<{
 }>()
 
 const showApprovalModal = ref(false)
+const showUnapproveModal = ref(false)
 
 function handleApprove() {
   showApprovalModal.value = true
@@ -27,9 +28,12 @@ function confirmApproval() {
 }
 
 function handleUnapprove() {
-  if (confirm('Tem certeza que deseja voltar para rascunho?')) {
-    emit('unapprove')
-  }
+  showUnapproveModal.value = true
+}
+
+function confirmUnapprove() {
+  showUnapproveModal.value = false
+  emit('unapprove')
 }
 </script>
 
@@ -54,7 +58,7 @@ function handleUnapprove() {
         class="px-6 py-3 border border-[var(--border-default)] text-[var(--text-primary)] rounded-lg font-medium hover:bg-[var(--bg-muted)]"
         @click="handleUnapprove"
       >
-        Editar
+        Voltar para Rascunho
       </button>
 
       <button
@@ -72,6 +76,41 @@ function handleUnapprove() {
         {{ campaign.status === 'sending' ? 'Enviando...' : 'Campanha enviada' }}
       </div>
     </template>
+
+    <!-- Unapprove modal -->
+    <Teleport to="body">
+      <div
+        v-if="showUnapproveModal"
+        class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50"
+        @click.self="showUnapproveModal = false"
+      >
+        <div
+          class="bg-white rounded-t-2xl sm:rounded-2xl p-6 max-w-md w-full mx-4 sm:mx-0 animate-slide-up"
+        >
+          <h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">Voltar para Rascunho?</h3>
+          <p class="text-[var(--text-secondary)] mb-6">
+            A campanha voltará ao estado de rascunho e precisará ser aprovada novamente antes do envio.
+          </p>
+
+          <div class="flex gap-3">
+            <button
+              type="button"
+              class="flex-1 px-4 py-2 border border-[var(--border-default)] text-[var(--text-primary)] rounded-lg font-medium hover:bg-[var(--bg-muted)]"
+              @click="showUnapproveModal = false"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              class="flex-1 px-4 py-2 bg-[var(--action-primary)] text-white rounded-lg font-medium hover:opacity-90"
+              @click="confirmUnapprove"
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Approval modal -->
     <Teleport to="body">

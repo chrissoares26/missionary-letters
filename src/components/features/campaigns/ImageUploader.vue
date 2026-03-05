@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useUploadCampaignImage, useDeleteCampaignImage } from '@/queries/campaigns'
+import { useToast } from '@/composables/useToast'
 
 interface Props {
   campaignId: string
@@ -22,6 +23,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const uploadMutation = useUploadCampaignImage()
 const deleteMutation = useDeleteCampaignImage()
 const dragOver = ref(false)
+const { error: showToastError } = useToast()
 
 const isUploading = computed(() => uploadMutation.isLoading.value)
 const isDeleting = computed(() => deleteMutation.isLoading.value)
@@ -44,14 +46,14 @@ async function handleFiles(files: FileList | null) {
   const validFiles = filesArray.filter((file) => {
     // Check file type
     if (!file.type.startsWith('image/')) {
-      alert(`${file.name} não é uma imagem válida`)
+      showToastError(`${file.name} não é uma imagem válida`)
       return false
     }
 
     // Check file size
     const sizeMB = file.size / (1024 * 1024)
     if (sizeMB > props.maxSizeMB) {
-      alert(`${file.name} é muito grande (max ${props.maxSizeMB}MB)`)
+      showToastError(`${file.name} é muito grande (max ${props.maxSizeMB}MB)`)
       return false
     }
 
@@ -70,7 +72,7 @@ async function handleFiles(files: FileList | null) {
       images.value = [...images.value, url]
     } catch (error) {
       console.error('Upload failed:', error)
-      alert(`Erro ao enviar ${file.name}`)
+      showToastError(`Erro ao enviar ${file.name}`)
     }
   }
 }
@@ -93,7 +95,7 @@ async function removeImage(imageUrl: string) {
     images.value = images.value.filter((url) => url !== imageUrl)
   } catch (error) {
     console.error('Delete failed:', error)
-    alert('Erro ao deletar imagem')
+    showToastError('Erro ao deletar imagem')
   }
 }
 </script>

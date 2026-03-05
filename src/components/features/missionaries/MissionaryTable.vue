@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useMissionariesQuery, useMissionaryFilters, useDeleteMissionary } from '@/queries/missionaries'
+import { useConfirm } from '@/composables/useConfirm'
 import type { Missionary } from '@/types/database'
 
 interface Props {
@@ -13,10 +14,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { filters, setActiveFilter, setSearchFilter } = useMissionaryFilters()
 const { data: missionaries, status, error } = useMissionariesQuery(filters)
-const { mutate: deleteMissionary, status: deleteStatus } = useDeleteMissionary()
+const { mutate: deleteMissionary, isLoading: isDeleting } = useDeleteMissionary()
+const { confirm } = useConfirm()
 
 const isLoading = computed(() => status.value === 'pending')
-const isDeleting = computed(() => deleteStatus.value === 'pending')
 
 // Format mission end date to pt-BR format
 function formatEndDate(date: string | null): string {
@@ -72,10 +73,13 @@ function getStatusInfo(missionary: Missionary) {
   }
 }
 
-function handleDelete(missionary: Missionary) {
-  if (!confirm(`Tem certeza que deseja desativar ${missionary.first_name} ${missionary.last_name}?`)) {
-    return
-  }
+async function handleDelete(missionary: Missionary) {
+  const confirmed = await confirm({
+    title: 'Desativar missionário?',
+    message: `${missionary.title} ${missionary.first_name} ${missionary.last_name} será desativado e não receberá mais campanhas.`,
+    confirmLabel: 'Desativar',
+  })
+  if (!confirmed) return
   deleteMissionary(missionary.id)
 }
 </script>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useStyleProfileQuery, useGenerateStyleProfile } from '@/queries/style-library'
+import { useToast } from '@/composables/useToast'
 
 interface Props {
   emailCount: number
@@ -10,6 +11,7 @@ const props = defineProps<Props>()
 
 const { data: profile, isLoading, refetch } = useStyleProfileQuery()
 const { mutate: generateProfile, isLoading: isGenerating } = useGenerateStyleProfile()
+const { error: showToastError } = useToast()
 
 const hasProfile = computed(() => profile.value !== null)
 const canGenerate = computed(() => props.emailCount >= 3)
@@ -31,7 +33,7 @@ function handleGenerate() {
       refetch()
     },
     onError: (error) => {
-      alert(`Erro ao gerar perfil: ${error.message}`)
+      showToastError(`Erro ao gerar perfil: ${error.message}`)
     },
   })
 }

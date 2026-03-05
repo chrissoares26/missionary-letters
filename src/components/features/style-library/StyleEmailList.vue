@@ -2,6 +2,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { supabase } from '@/utils/supabase'
 import { useDeleteStyleEmail } from '@/queries/style-library'
+import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
 import EmbeddingStatusBadge from './EmbeddingStatusBadge.vue'
 import type { StyleEmail } from '@/types/database'
 
@@ -27,6 +29,8 @@ const remainingCount = computed(() => props.emails.length - PREVIEW_LIMIT)
 
 const { mutateAsync: deleteEmail } = useDeleteStyleEmail()
 const deletingId = ref<string | null>(null)
+const { error: showToastError } = useToast()
+const { confirm } = useConfirm()
 
 // Local embedding state — seeded from props, updated via Realtime
 const localEmbeddings = ref<Record<string, boolean>>({})
@@ -57,13 +61,18 @@ onUnmounted(() => {
 })
 
 async function confirmDelete(id: string) {
-  if (!confirm('Remover este email da biblioteca?')) return
+  const confirmed = await confirm({
+    title: 'Remover email?',
+    message: 'Este email será removido da biblioteca de estilos.',
+    confirmLabel: 'Remover',
+  })
+  if (!confirmed) return
   deletingId.value = id
   try {
     await deleteEmail(id)
     emit('deleted', id)
   } catch {
-    alert('Erro ao remover email.')
+    showToastError('Erro ao remover email.')
   } finally {
     deletingId.value = null
   }

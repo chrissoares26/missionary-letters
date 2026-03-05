@@ -3,12 +3,14 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCreateCampaign, useTriggerDraftGeneration } from '@/queries/campaigns'
 import { useStyleEmailCountQuery } from '@/queries/style-library'
+import { useToast } from '@/composables/useToast'
 import type { CampaignFormData } from '@/types/campaign'
 
 const router = useRouter()
 const createMutation = useCreateCampaign()
 const triggerGeneration = useTriggerDraftGeneration()
 const { data: emailCount } = useStyleEmailCountQuery()
+const { error: showToastError } = useToast()
 
 const formData = ref<CampaignFormData>({
   topic: '',
@@ -55,7 +57,7 @@ async function handleSubmit() {
     router.push(`/campaigns/${campaign.id}`)
   } catch (error) {
     console.error('Failed to create campaign:', error)
-    alert('Erro ao criar campanha. Tente novamente.')
+    showToastError('Erro ao criar campanha. Tente novamente.')
   }
 }
 </script>

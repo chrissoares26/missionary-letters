@@ -602,11 +602,13 @@ Key bugs fixed during implementation:
 
 ---
 
-## Epic 6: Gmail Integration and Send Orchestration
+## Epic 6: Gmail Integration and Send Orchestration ✅ COMPLETE
 
 **Objective:** Deliver reliable individualized sending with complete recipient-level traceability.
 
-### Story 6.1: OAuth Connect/Disconnect + Token Model
+**Session:** `2026-03-05-1700-epic6.md`
+
+### Story 6.1: OAuth Connect/Disconnect + Token Model ✅
 **Scope**
 - Define Gmail OAuth flow and token persistence strategy.
 
@@ -619,7 +621,7 @@ Key bugs fixed during implementation:
 **Acceptance Criteria**
 - Expired token behavior and reconnect path are documented.
 
-### Story 6.2: Send Orchestration (`campaign_send`)
+### Story 6.2: Send Orchestration (`campaign_send`) ✅
 **Scope**
 - Queue and send one email per active missionary.
 - **IMPORTANT:** Epic 5 image upload feature requires HTML email support (not plain text).
@@ -646,7 +648,7 @@ Key bugs fixed during implementation:
 - Gmail API: use `message.payload.parts` for HTML body (multipart/alternative)
 - Include fallback plain text version for old email clients
 
-### Story 6.3: Recipient Rendering and Send Logging
+### Story 6.3: Recipient Rendering and Send Logging ✅
 **Scope**
 - Render deterministic subject/body per recipient and persist result.
 - Render HTML email body with embedded images.
@@ -671,7 +673,7 @@ Key bugs fixed during implementation:
 - Store both plain text and HTML versions in rendered_body
 - Test HTML rendering in Gmail, Apple Mail, Outlook
 
-### Story 6.4: Result Reporting
+### Story 6.4: Result Reporting ✅
 **Scope**
 - Show campaign send summary and per-recipient detail.
 
@@ -684,8 +686,41 @@ Key bugs fixed during implementation:
 **Acceptance Criteria**
 - User can see sent/failed results clearly.
 
+**Epic 6 Implementation Notes (Completed 2026-03-05)**
+
+Key files delivered:
+- `supabase/functions/oauth_google_callback/index.ts` — browser-redirect OAuth token exchange; upserts `google_accounts`; validates userinfo response; `prompt=consent` reconnect-safe (conditional `refresh_token` upsert)
+- `supabase/functions/campaign_send/index.ts` — batch HTML email send (420 lines); per-recipient token rendering (`{{title}} {{first_name}}`); XSS escaping; idempotency guard (`sent || sending`); outer-catch resets campaign to `failed`; per-recipient logging to `campaign_recipients`; deployed with `--no-verify-jwt`
+- `supabase/migrations/20260305000002_add_campaign_recipients_realtime.sql` — adds `campaign_recipients` to `supabase_realtime` publication
+- `src/api/gmail.ts` — `initiateGoogleOAuth`, `getGoogleAccount`, `disconnectGoogleAccount`, `sendCampaign`, `getCampaignRecipients`, `updateSignature`, `getSignature`
+- `src/queries/gmail.ts` — Pinia Colada queries/mutations + `useRecipientsRealtime` Realtime subscription
+- `src/components/features/settings/GmailConnectCard.vue` — connected/disconnected states, disconnect confirmation
+- `src/components/features/settings/SignatureEditor.vue` — textarea with optimistic save feedback
+- `src/components/features/campaigns/RecipientStatusList.vue` — queued/sent/failed status icons, live stats, skeleton loader
+- `src/pages/settings.vue` — OAuth callback toast (`?gmail=connected` / `?gmail=error`), URL cleanup, Gmail + signature wiring
+- `src/pages/campaigns/[id].vue` — real send handler, auto-shows recipients for `sending`/`sent` campaigns on load
+
+Key bugs fixed during implementation:
+- `disconnectGoogleAccount` — was `.neq('owner_id', '')` (data-loss risk); fixed to `.eq('owner_id', userId)` with explicit session fetch
+- `campaign_send` outer catch — didn't reset campaign status; fixed: `activeCampaignId` captured before try; catch does best-effort `update({ status: 'failed' })`
+- `useRecipientsRealtime` channel leak — was `.unsubscribe()`; fixed to `supabase.removeChannel()`
+- `oauth_google_callback` — no userinfo validation; fixed with `!profileResponse.ok` + `!profileData.email` guards
+- `settings.vue` — had `<style scoped>` transition (violates CLAUDE.md); fixed with Tailwind `enter-active-class`/`leave-active-class`
+
+Known technical debt (deferred to Epic 7):
+- No unit tests for `escapeHtml`, `renderTokens`, `toBase64Url` in `campaign_send`
+- `alert()` in error paths (`GmailConnectCard`, `SignatureEditor`) — needs `useToast()` composable + `<ToastContainer>` in `App.vue`
+- No send rate limiting — `src/utils/delay.ts` exists; add `await delay(300)` jitter for lists > 15 missionaries
+- All Edge Functions called from `supabase.functions.invoke` must use `--no-verify-jwt`; auth is handled internally via `auth.getUser()`
+
 **Epic 6 Exit Criteria**
-- OAuth, send orchestration, logging, and reporting are implementation-ready.
+- ✅ OAuth connect/disconnect flow end-to-end verified
+- ✅ `campaign_send` Edge Function deployed and code-reviewed
+- ✅ Per-recipient Realtime status updates working
+- ✅ Settings page wired with Gmail + signature UI
+- ✅ Campaign send flow replaces stub with real Gmail send
+- ✅ All 5 code review bugs fixed before merge
+- ✅ Committed: `03197a8` (`feat: integrate Gmail API for campaign management`)
 
 ---
 
@@ -693,31 +728,67 @@ Key bugs fixed during implementation:
 
 **Objective:** Reduce operational risk and enforce clear security boundaries before release.
 
-### Story 7.1: Error Taxonomy and Recovery UX
+**Session:** `2026-03-05-2145-epic7-planning.md`
+
+### Story 7.1: Error Taxonomy and Recovery UX ⏳ IN PROGRESS
 **Scope**
 - Define error classes and user-facing messages.
+- Replace all browser-native `alert()` and `confirm()` with app-level UX patterns.
 
 **Deliverables**
 - Error map across generation, send, auth, and data operations.
+- `useToast()` composable + global `<ToastContainer>` in `App.vue`.
+- `useConfirm()` composable + global `<ConfirmModal>` in `App.vue`.
 
 **Dependencies**
 - Epics 3-6.
 
 **Acceptance Criteria**
 - Recoverable vs non-recoverable errors are explicit.
+- No native `alert()` or `confirm()` calls in `src/`.
+
+**Implementation Notes (2026-03-05)**
+
+Completed:
+- `src/composables/useToast.ts` — module-level reactive toast queue; `success()`, `error()`, `info()` helpers
+- `src/components/ui/Toast.vue` — animated top-bar toast with auto-dismiss
+- `src/App.vue` — global `<Toast>` container + `<ConfirmModal>` mounted at root
+- `src/composables/useConfirm.ts` — promise-based confirm composable; single global modal instance
+- `src/components/ui/ConfirmModal.vue` — slide-up bottom sheet modal; Teleport to body; configurable title/message/labels
+- All `alert()` calls replaced with `useToast()` across `GmailConnectCard`, `SignatureEditor`, `campaigns/[id].vue`, `settings.vue`
+- All `confirm()` calls replaced with `useConfirm()` across `GmailConnectCard`, `StyleEmailList`, `MissionaryTable`, `campaigns/[id].vue` (3 calls)
+- `CampaignActions.vue` — unapprove `confirm()` replaced with inline `showUnapproveModal` bottom-sheet (same pattern as approval)
+
+**Bug fixed (Pinia Colada mutation status):**
+- Root cause: `MissionaryTable.vue` used `status === 'pending'` to derive `isDeleting` — in Pinia Colada, mutation `status` starts as `'pending'` (no result yet), so buttons were permanently disabled
+- Fix: destructure `isLoading` directly (`const { mutate, isLoading: isDeleting } = useDeleteMissionary()`) — `isLoading` maps to `asyncStatus === 'loading'` and is `false` until the mutation is actively running
+- **Impact:** Missionaries can now be deactivated via the UI
+
+Remaining for Story 7.1 completion:
+- Unit tests for `escapeHtml`, `renderTokens`, `toBase64Url` in `campaign_send` Edge Function
+- Send rate limiting: add `await delay(300)` jitter in `campaign_send` using existing `src/utils/delay.ts`
+- Error taxonomy document (recoverable vs non-recoverable classification)
 
 ### Story 7.2: Audit and Operational Logging
 **Scope**
 - Define required logs/events for high-risk flows.
+- Implement `missionaries_autodeactivate` scheduled Edge Function.
 
 **Deliverables**
 - Logging checklist for campaign lifecycle and scheduler events.
+- `supabase/functions/missionaries_autodeactivate/index.ts` — scheduled daily cron; spec in `documentation/missionary_auto_deactivation_spec.md`
 
 **Dependencies**
 - Story 7.1.
 
 **Acceptance Criteria**
 - Monitoring expectations are explicit for production support.
+- `missionaries_autodeactivate` Edge Function deployed and scheduled (daily at 2:00 AM UTC).
+- Missionaries with expired `mission_end_date` are auto-deactivated on next scheduler run.
+
+**Status:** ⏳ NOT STARTED
+- `missionaries_autodeactivate` Edge Function not yet implemented (spec exists at `documentation/missionary_auto_deactivation_spec.md`)
+- No `supabase/functions/missionaries_autodeactivate/` directory exists
 
 ### Story 7.3: Security Checklist
 **Scope**
@@ -732,8 +803,19 @@ Key bugs fixed during implementation:
 **Acceptance Criteria**
 - Security responsibilities are non-ambiguous and reviewable.
 
+**Status:** ⏳ NOT STARTED
+
+Key items to address:
+- Verify all tables have correct RLS policies (run `mcp__supabase__get_advisors` security scan)
+- Document: `campaign_recipients` owns no `owner_id` — RLS is via `campaigns` join
+- Document: all `supabase.functions.invoke` calls must use `--no-verify-jwt`; auth is internal via `auth.getUser()`
+- Document: Google `refresh_token` lifecycle (only sent on `prompt=consent`; conditional upsert prevents NOT NULL fail on reconnect)
+
 **Epic 7 Exit Criteria**
-- Security and operational readiness criteria are defined and measurable.
+- ✅ Story 7.1: No `alert()`/`confirm()` in `src/`; missionaries can be deactivated
+- ⏳ Story 7.1: Unit tests for Edge Function helpers; send rate limiting
+- ⏳ Story 7.2: `missionaries_autodeactivate` deployed + scheduled; logging checklist written
+- ⏳ Story 7.3: Security checklist completed; RLS advisor scan clean
 
 ---
 

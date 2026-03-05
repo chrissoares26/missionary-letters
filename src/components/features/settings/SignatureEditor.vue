@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useSignatureQuery, useUpdateSignature } from '@/queries/gmail'
+import { useToast } from '@/composables/useToast'
 
 const signatureQuery = useSignatureQuery()
 const updateSignatureMutation = useUpdateSignature()
+const { error: showToastError } = useToast()
 
 const draft = ref('')
 const saveFeedback = ref(false)
@@ -29,7 +31,7 @@ async function handleSave() {
     }, 2000)
   } catch (error) {
     console.error('Failed to save signature:', error)
-    alert('Erro ao salvar assinatura')
+    showToastError('Erro ao salvar assinatura')
   }
 }
 </script>

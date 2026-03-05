@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useDisconnectGoogleAccount, useGoogleAccountQuery, useInitiateGoogleOAuth } from '@/queries/gmail'
+import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
 
 const { data: account, status: accountStatus } = useGoogleAccountQuery()
 const connectMutation = useInitiateGoogleOAuth()
 const disconnectMutation = useDisconnectGoogleAccount()
+const { error: showToastError } = useToast()
+const { confirm } = useConfirm()
 
 const isConnected = computed(() => !!account.value)
 const isAccountLoading = computed(() => accountStatus.value === 'pending')
@@ -14,13 +18,18 @@ function handleConnect() {
 }
 
 async function handleDisconnect() {
-  if (!confirm('Desconectar o Gmail? Você não poderá enviar campanhas até reconectar.')) return
+  const confirmed = await confirm({
+    title: 'Desconectar Gmail?',
+    message: 'Você não poderá enviar campanhas até reconectar.',
+    confirmLabel: 'Desconectar',
+  })
+  if (!confirmed) return
 
   try {
     await disconnectMutation.mutateAsync()
   } catch (error) {
     console.error('Failed to disconnect Gmail:', error)
-    alert('Erro ao desconectar Gmail')
+    showToastError('Erro ao desconectar Gmail')
   }
 }
 </script>
