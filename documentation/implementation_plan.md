@@ -512,11 +512,11 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 
 ---
 
-## Epic 5: Campaign Draft Generation Workflow
+## Epic 5: Campaign Draft Generation Workflow ✅ COMPLETE
 
 **Objective:** Provide full user flow for campaign content generation, editing, and approval.
 
-### Story 5.1: New Campaign Input Flow
+### Story 5.1: New Campaign Input Flow ✅
 **Scope**
 - Capture topic and optional notes.
 
@@ -529,7 +529,7 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 **Acceptance Criteria**
 - Campaign can be created with required fields.
 
-### Story 5.2: Draft Generation (`draft_generate`)
+### Story 5.2: Draft Generation (`draft_generate`) ✅
 **Scope**
 - Generate structured content from topic/notes/style context.
 
@@ -546,7 +546,7 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 **Acceptance Criteria**
 - Generation returns all four content artifacts.
 
-### Story 5.3: Edit Experience for Generated Content
+### Story 5.3: Edit Experience for Generated Content ✅
 **Scope**
 - Editable content UI and persistence behavior.
 
@@ -559,7 +559,7 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 **Acceptance Criteria**
 - Edits persist and are reflected in send preview.
 
-### Story 5.4: Approval Gate
+### Story 5.4: Approval Gate ✅
 **Scope**
 - Enforce explicit approval before send eligibility.
 
@@ -572,8 +572,33 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 **Acceptance Criteria**
 - Send action blocked until approval is complete.
 
+**Epic 5 Implementation Notes (Completed 2026-03-05)**
+
+Key files delivered:
+- `supabase/functions/draft_generate/index.ts` — RAG-based generation using OpenAI `gpt-4o`; retrieves top-6 style examples via `style_match`, fetches `style_profile`, builds Portuguese prompt, inserts into `campaign_content`
+- `supabase/migrations/20260305000001_add_campaign_images_resources.sql` — adds `resources TEXT` to `campaigns` and `images TEXT[]` to `campaign_content`; `campaign-images` Storage bucket; `campaign_content` added to `supabase_realtime` publication
+- `src/api/campaigns.ts` — full CRUD: `getCampaigns`, `getCampaignById`, `getCampaignContent`, `createCampaign`, `updateCampaign`, `updateCampaignContent`, `deleteCampaign`, `triggerDraftGeneration`, `approveCampaign`, `unapproveCampaign`, `regenerateDraft`, `uploadCampaignImage`, `deleteCampaignImage`
+- `src/queries/campaigns.ts` — Pinia Colada queries and mutations; `useCampaignContentQuery` includes Realtime subscription on `campaign_content` table
+- `src/components/features/campaigns/CampaignActions.vue` — sticky action bar; draft → approve modal; approved → send flow
+- `src/components/features/campaigns/CampaignEditor.vue` — auto-save (500ms debounce) for email, WhatsApp, Facebook content; image uploader integration
+- `src/components/features/campaigns/CampaignHeader.vue` — topic display, status badge, regenerate/delete actions
+- `src/components/features/campaigns/ImageUploader.vue` — drag-and-drop + file picker; validates type/size; uploads to `campaign-images` bucket
+- `src/pages/campaigns/new.vue` — form with topic, notes (≥20 chars), resources; guards require ≥3 style emails; fire-and-forget generation trigger
+- `src/pages/campaigns/[id].vue` — generation spinner, Realtime-driven content reveal, approve/unapprove/delete/regenerate orchestration
+
+Key bugs fixed during implementation:
+- `draft_generate` CORS: added `corsHeaders` to all responses (not just OPTIONS preflight)
+- Inter-function auth: forwarded user JWT (`Authorization: authHeader`) when calling `style_match` — service role key cannot resolve to a user in `auth.getUser()`
+- `style_match` parameter: `top_k` → `k`
+- Realtime: `campaign_content` was not in `supabase_realtime` publication — added via migration
+- Pinia Colada: used `isLoading.value` (not `status.value === 'pending'`) to detect active mutations
+- CSS tokens: campaign components used undefined vars (`--primary`, `--border`, `--background`, etc.); corrected to `--action-primary`, `--border-default`, `--bg-canvas`, `--bg-muted`, `--bg-surface`
+
 **Epic 5 Exit Criteria**
-- Campaign generation and pre-send control flow are fully specified and testable.
+- ✅ All stories 5.1, 5.2, 5.3, 5.4 complete — full campaign draft generation and approval workflow.
+- ✅ Edge Function `draft_generate` working end-to-end (POST 200, content inserted, Realtime triggers UI update).
+- ✅ Image upload to Supabase Storage working with drag-and-drop and file picker.
+- ✅ Browser-tested and user-approved — all features working as expected.
 
 ---
 
