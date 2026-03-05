@@ -49,6 +49,13 @@ supabase/
 │
 └── seed/ # Optional local seed data for development
 
+# Supabase Storage Structure
+campaign-images/  # Bucket for campaign image uploads
+  └── {owner_id}/
+      └── {campaign_id}/
+          ├── image-1.jpg
+          └── image-2.png
+
 src/
 ├── api/ # MUST export individual functions that call Supabase or Edge Functions
 │   ├── missionaries.ts

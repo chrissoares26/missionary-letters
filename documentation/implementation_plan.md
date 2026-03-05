@@ -29,7 +29,7 @@
 - No multi-user collaboration workflow beyond single primary user/admin baseline.
 - No internationalization/localization framework in MVP beyond `pt-BR` defaults.
 - No advanced analytics dashboard.
-- No HTML composer in MVP (plain text email body).
+- ~~No HTML composer in MVP (plain text email body).~~ **UPDATED (Epic 5):** HTML emails ARE required for MVP due to image upload feature. See Epic 6 Story 6.2 and 6.3 for implementation details.
 - No per-recipient AI generation in MVP (deterministic template rendering only).
 
 ### 1.4 Planning Constraints and Decisions
@@ -597,9 +597,11 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 ### Story 6.2: Send Orchestration (`campaign_send`)
 **Scope**
 - Queue and send one email per active missionary.
+- **IMPORTANT:** Epic 5 image upload feature requires HTML email support (not plain text).
 
 **Deliverables**
 - Send transaction model with idempotency strategy.
+- HTML email template with inline image support.
 
 **Dependencies**
 - Story 6.1 and Epic 5.
@@ -607,13 +609,26 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 **Acceptance Criteria**
 - One attempt per active recipient per campaign send action.
 - Duplicate-send prevention strategy documented.
+- HTML emails render correctly with embedded images from Supabase Storage.
+
+**Implementation Notes (Epic 5 Impact)**
+- Switch from plain text to HTML email format
+- Create HTML email template:
+  - Inline CSS for email client compatibility
+  - Image embedding: `<img src="{storage_url}" />` from campaign_content.images
+  - Preserve user's signature formatting
+  - Responsive design for mobile email clients
+- Gmail API: use `message.payload.parts` for HTML body (multipart/alternative)
+- Include fallback plain text version for old email clients
 
 ### Story 6.3: Recipient Rendering and Send Logging
 **Scope**
 - Render deterministic subject/body per recipient and persist result.
+- Render HTML email body with embedded images.
 
 **Deliverables**
 - `campaign_recipients` logging model and status lifecycle.
+- HTML email renderer with personalization tokens ({{first_name}}, {{title}}, etc).
 
 **Dependencies**
 - Story 6.2.
@@ -621,6 +636,15 @@ Execution order is mandatory. Each epic must meet exit criteria before the next 
 **Acceptance Criteria**
 - Statuses include `queued`, `sent`, `failed`.
 - Error payload format is defined.
+- HTML email preview available in campaign editor (Story 5.3 enhancement).
+- Rendered HTML stored in campaign_recipients.rendered_body for audit trail.
+
+**Implementation Notes (Epic 5 Impact)**
+- HTML template rendering per recipient
+- Image URLs from campaign_content.images embedded inline
+- Personalization tokens replaced: {{title}} {{first_name}} → "Elder João"
+- Store both plain text and HTML versions in rendered_body
+- Test HTML rendering in Gmail, Apple Mail, Outlook
 
 ### Story 6.4: Result Reporting
 **Scope**

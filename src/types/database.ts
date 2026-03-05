@@ -66,6 +66,7 @@ export interface Campaign {
   owner_id: string
   topic: string
   notes: string | null
+  resources: string | null
   language: string
   status: CampaignStatus
   approved_at: string | null
@@ -79,6 +80,7 @@ export interface CampaignContent {
   email_body: string
   whatsapp_text: string
   facebook_text: string
+  images: string[] | null
   updated_at: string
 }
 
