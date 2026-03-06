@@ -30,7 +30,11 @@ const router = createRouter({
       path: '/style-library',
       component: () => import('@/pages/style-library.vue'),
     },
-    // /campaigns/new must be declared before /campaigns/:id
+    // /campaigns list must be declared before /campaigns/new and /campaigns/:id
+    {
+      path: '/campaigns',
+      component: () => import('@/pages/campaigns/index.vue'),
+    },
     {
       path: '/campaigns/new',
       component: () => import('@/pages/campaigns/new.vue'),
