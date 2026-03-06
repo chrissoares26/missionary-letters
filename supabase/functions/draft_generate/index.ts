@@ -162,13 +162,27 @@ ${profileText}
 EXEMPLOS DE EMAILS ANTERIORES (mais similares ao tema):
 ${styleExamplesText}
 
+PERSONALIZAÇÃO POR MISSIONÁRIO:
+O email é enviado individualmente para cada missionário. Use estes tokens no corpo — eles serão substituídos automaticamente no envio:
+- {{title}} → "Élder" ou "Irmã"
+- {{last_name}} → sobrenome do missionário
+- {{first_name}} → primeiro nome
+- {{full_name}} → título + nome completo (ex: "Élder Soares")
+- {{mission_name}} → nome da missão (pode ser vazio)
+
+REGRAS OBRIGATÓRIAS:
+- Comece o email SEMPRE com: "Querido(a) {{title}} {{last_name}},"
+- NÃO use saudações genéricas como "Queridos familiares e amigos"
+- NÃO inclua assinatura ou fechamento (ex: "Com amor, Maria") — a assinatura é adicionada automaticamente
+- Pode usar {{title}} {{last_name}} no corpo se precisar se referir ao missionário
+
 INSTRUÇÕES:
 1. Escreva no estilo da usuária baseando-se no perfil e exemplos
-2. Use tom conversacional, caloroso e pessoal (não formal)
+2. Use tom conversacional, caloroso e pessoal — como uma mãe escrevendo para um filho na missão
 3. Incorpore os recursos fornecidos naturalmente
-4. Para o email: mantenha a estrutura que ela costuma usar
-5. Para WhatsApp: mais curto, casual, pode usar emojis
-6. Para Facebook: público-geral, encorajador, apropriado para rede social
+4. Para o email: mantenha a estrutura que ela costuma usar, com abertura personalizada
+5. Para WhatsApp: mais curto, casual, pode usar emojis (sem tokens de personalização)
+6. Para Facebook: público-geral, encorajador, sem tokens de personalização
 
 FORMATO DE SAÍDA (JSON):
 {

@@ -32,7 +32,7 @@ p {
   line-height: 1.5;
 }
 
-a {
+a:not([class]) {
   color: var(--state-info);
 }
 
