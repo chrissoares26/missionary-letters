@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink, useLink } from 'vue-router'
+import { RouterLink } from 'vue-router'
 
 interface NavItem {
   to: string

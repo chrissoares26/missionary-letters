@@ -83,6 +83,7 @@ export async function createMissionary(formData: MissionaryFormData): Promise<Mi
     active: formData.active,
     inactive_reason: formData.inactive_reason || null,
     notes: formData.notes || null,
+    last_sent_at: null,
   }
 
   const { data, error } = await supabase

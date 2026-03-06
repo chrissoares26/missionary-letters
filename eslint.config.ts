@@ -28,5 +28,13 @@ export default defineConfigWithVueTs(
 
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
 
+  // File-based route pages have single-word names by convention — suppress the multi-word rule
+  {
+    files: ['src/pages/**/*.vue', 'src/components/ui/*.vue'],
+    rules: {
+      'vue/multi-word-component-names': 'off',
+    },
+  },
+
   skipFormatting,
 )

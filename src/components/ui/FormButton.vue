@@ -6,7 +6,7 @@ interface Props {
   type?: 'button' | 'submit' | 'reset'
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   loading: false,
   disabled: false,
   variant: 'primary',

@@ -52,9 +52,20 @@ export interface StyleEmail {
   updated_at: string
 }
 
+export interface StyleProfileJson {
+  summary?: string
+  unique_voice?: string
+  tone?: { primary?: string }
+  common_phrases?: string[]
+  metadata?: {
+    generated_at?: string
+    analyzed_count?: number
+  }
+}
+
 export interface StyleProfile {
   owner_id: string // primary key
-  profile_json: Record<string, unknown>
+  profile_json: StyleProfileJson
   updated_at: string
 }
 

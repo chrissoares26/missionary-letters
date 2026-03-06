@@ -35,9 +35,9 @@ describe('getAuthErrorMessage', () => {
 
 describe('fieldErrors', () => {
   it('all constants are non-empty strings', () => {
-    for (const [key, value] of Object.entries(fieldErrors)) {
-      expect(typeof value, `fieldErrors.${key} should be a string`).toBe('string')
-      expect(value.length, `fieldErrors.${key} should not be empty`).toBeGreaterThan(0)
+    for (const [, value] of Object.entries(fieldErrors)) {
+      expect(typeof value).toBe('string')
+      expect(value.length).toBeGreaterThan(0)
     }
   })
 })

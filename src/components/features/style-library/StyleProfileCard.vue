@@ -10,7 +10,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const { data: profile, isLoading, refetch } = useStyleProfileQuery()
-const { mutate: generateProfile, isLoading: isGenerating } = useGenerateStyleProfile()
+const { mutateAsync: generateProfile, isLoading: isGenerating } = useGenerateStyleProfile()
 const { error: showToastError } = useToast()
 
 const hasProfile = computed(() => profile.value !== null)
@@ -27,15 +27,14 @@ const lastGenerated = computed(() => {
   })
 })
 
-function handleGenerate() {
-  generateProfile(undefined, {
-    onSuccess: () => {
-      refetch()
-    },
-    onError: (error) => {
-      showToastError(`Erro ao gerar perfil: ${error.message}`)
-    },
-  })
+async function handleGenerate() {
+  try {
+    await generateProfile()
+    refetch()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro desconhecido'
+    showToastError(`Erro ao gerar perfil: ${message}`)
+  }
 }
 </script>
 

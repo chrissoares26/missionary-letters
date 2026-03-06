@@ -14,7 +14,7 @@ import type { MissionaryFormData, MissionaryFilters } from '@/types/missionary'
  */
 export function useMissionariesQuery(filters?: MaybeRefOrGetter<MissionaryFilters | undefined>) {
   return useQuery({
-    key: () => ['missionaries', toValue(filters)],
+    key: () => ['missionaries', toValue(filters) ?? null],
     query: () => getMissionaries(toValue(filters)),
     staleTime: 1000 * 60 * 5, // 5 minutes
   })

@@ -52,8 +52,8 @@ watch(() => props.missionary, (newMissionary) => {
 const errors = ref<Record<string, string>>({})
 
 // Mutations
-const { mutate: createMissionary, status: createStatus } = useCreateMissionary()
-const { mutate: updateMissionary, status: updateStatus } = useUpdateMissionary()
+const { mutateAsync: createMissionary, asyncStatus: createStatus } = useCreateMissionary()
+const { mutateAsync: updateMissionary, asyncStatus: updateStatus } = useUpdateMissionary()
 
 const isSubmitting = computed(() => {
   return createStatus.value === 'loading' || updateStatus.value === 'loading'
@@ -89,27 +89,18 @@ function validateForm(): boolean {
 }
 
 // Submit handlers
-function handleSubmit() {
+async function handleSubmit() {
   if (!validateForm()) {
     return
   }
 
   if (isEditMode.value && props.missionary) {
-    updateMissionary(
-      { id: props.missionary.id, data: formData.value },
-      {
-        onSuccess: () => {
-          props.onSuccess?.()
-        },
-      }
-    )
+    await updateMissionary({ id: props.missionary.id, data: formData.value })
   } else {
-    createMissionary(formData.value, {
-      onSuccess: () => {
-        props.onSuccess?.()
-      },
-    })
+    await createMissionary(formData.value)
   }
+
+  props.onSuccess?.()
 }
 </script>
 

@@ -14,8 +14,9 @@ export function getAuthErrorMessage(error: AuthError | null): string {
   if (!error) return 'Erro desconhecido'
 
   // Check for exact message match
-  if (authErrorMessages[error.message]) {
-    return authErrorMessages[error.message]
+  const exactMatch = authErrorMessages[error.message]
+  if (exactMatch) {
+    return exactMatch
   }
 
   // Check for partial matches

@@ -7,7 +7,7 @@ interface Props {
   hasContent: boolean
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const emit = defineEmits<{
   approve: []

@@ -25,7 +25,6 @@ const displayedEmails = computed(() => {
 })
 
 const hasMore = computed(() => props.emails.length > PREVIEW_LIMIT)
-const remainingCount = computed(() => props.emails.length - PREVIEW_LIMIT)
 
 const { mutateAsync: deleteEmail } = useDeleteStyleEmail()
 const deletingId = ref<string | null>(null)

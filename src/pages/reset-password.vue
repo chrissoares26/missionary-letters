@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import FormInput from '@/components/ui/FormInput.vue'
 import FormButton from '@/components/ui/FormButton.vue'
 import { useAuth } from '@/composables/useAuth'
@@ -8,7 +8,6 @@ import { useToast } from '@/composables/useToast'
 import { getAuthErrorMessage, fieldErrors } from '@/utils/authErrors'
 
 const router = useRouter()
-const route = useRoute()
 const { resetPassword, updatePassword, isAuthenticated } = useAuth()
 const { error: showToastError, success: showToastSuccess } = useToast()
 
