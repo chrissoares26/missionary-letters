@@ -33,12 +33,10 @@ function handleFormSuccess() {
     <!-- Header -->
     <div class="bg-white border-b border-stone-300 sticky top-0 z-10">
       <div class="max-w-4xl mx-auto px-4 py-4">
-        <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center justify-between gap-4 pt-8">
           <div class="flex-1 min-w-0">
             <h1 class="text-2xl font-bold text-ink-900 font-serif">Missionários</h1>
-            <p class="text-sm text-secondary mt-1">
-              Gerencie os missionários ativos e inativos
-            </p>
+            <p class="text-sm text-secondary mt-1">Gerencie os missionários ativos e inativos</p>
           </div>
           <button
             type="button"
@@ -85,7 +83,9 @@ function handleFormSuccess() {
               style="padding-bottom: env(safe-area-inset-bottom, 0px)"
             >
               <!-- Modal header -->
-              <div class="sticky top-0 bg-white border-b border-stone-300 px-6 py-4 rounded-t-3xl sm:rounded-t-2xl">
+              <div
+                class="sticky top-0 bg-white border-b border-stone-300 px-6 py-4 rounded-t-3xl sm:rounded-t-2xl"
+              >
                 <div class="flex items-center justify-between">
                   <h2 class="text-xl font-bold text-ink-900 font-serif">
                     {{ editingMissionary ? 'Editar Missionário' : 'Novo Missionário' }}
@@ -97,7 +97,12 @@ function handleFormSuccess() {
                     aria-label="Fechar"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>

@@ -7,10 +7,18 @@
   --color-stone-300: #d2c7b2;
 
   --color-ink-900: #1d2b2a;
+  --color-forest-50: #eef5f4;
+  --color-forest-200: #aecece;
+  --color-forest-500: #3d6459;
+  --color-forest-600: #355750;
   --color-forest-700: #2d4a45;
+  --color-forest-900: #1a2d28;
 
+  --color-sunrise-50: #fdf4e8;
+  --color-sunrise-200: #f4c98a;
   --color-sunrise-500: #d88939;
   --color-sunrise-600: #ba6f26;
+  --color-sunrise-900: #5c2e0a;
 
   --color-sky-500: #4d8197;
 

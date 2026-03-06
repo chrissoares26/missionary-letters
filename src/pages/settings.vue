@@ -27,7 +27,7 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen bg-[var(--bg-canvas)] pb-24">
-    <div class="border-b border-[var(--border-default)] bg-[var(--bg-surface)] px-4 py-4">
+    <div class="border-b border-[var(--border-default)] bg-[var(--bg-surface)] px-4 pb-4 pt-8">
       <h1 class="text-xl font-bold text-[var(--text-primary)]">Configurações</h1>
       <p class="mt-0.5 text-sm text-[var(--text-secondary)]">Gmail e assinatura de email</p>
     </div>

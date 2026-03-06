@@ -20,9 +20,9 @@ withDefaults(defineProps<Props>(), {
     :disabled="disabled || loading"
     class="relative inline-flex items-center justify-center rounded-lg px-6 py-2.5 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
     :class="{
-      'bg-forest-600 text-white hover:bg-forest-700 focus:ring-forest-500': variant === 'primary',
-      'bg-stone-200 text-ink-900 hover:bg-stone-300 focus:ring-stone-400': variant === 'secondary',
-      'bg-sunrise-600 text-white hover:bg-sunrise-700 focus:ring-sunrise-500': variant === 'danger',
+      'bg-sunrise-500 text-white hover:bg-sunrise-600 focus:ring-sky-500': variant === 'primary',
+      'bg-linen-100 text-ink-900 hover:bg-linen-50 focus:ring-sky-500': variant === 'secondary',
+      'bg-danger-600 text-white hover:opacity-90 focus:ring-danger-600': variant === 'danger',
     }"
   >
     <!-- Loading spinner -->

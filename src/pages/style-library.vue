@@ -15,9 +15,7 @@ const isLoading = computed(() => emailsStatus.value === 'pending')
 const emailCount = computed(() => count.value ?? 0)
 const atCap = computed(() => emailCount.value >= EMAIL_CAP)
 const isOnboarding = computed(() => emailCount.value < ONBOARDING_MIN)
-const progressPercent = computed(() =>
-  Math.min(100, (emailCount.value / ONBOARDING_MIN) * 100),
-)
+const progressPercent = computed(() => Math.min(100, (emailCount.value / ONBOARDING_MIN) * 100))
 const remaining = computed(() => Math.max(0, ONBOARDING_MIN - emailCount.value))
 
 // Show "ready" banner once when onboarding completes, auto-dismiss after 4s
@@ -49,7 +47,7 @@ function handleFormSuccess() {
 </script>
 
 <template>
-  <div class="mx-auto max-w-2xl px-4 py-6">
+  <div class="mx-auto max-w-2xl px-4 pb-6 pt-8">
     <!-- Header -->
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-ink-900">Biblioteca de Estilo</h1>
@@ -148,11 +146,11 @@ function handleFormSuccess() {
               style="padding-bottom: env(safe-area-inset-bottom, 0px)"
             >
               <!-- Modal header -->
-              <div class="sticky top-0 bg-white border-b border-stone-300 px-6 py-4 rounded-t-3xl sm:rounded-t-2xl">
+              <div
+                class="sticky top-0 bg-white border-b border-stone-300 px-6 py-4 rounded-t-3xl sm:rounded-t-2xl"
+              >
                 <div class="flex items-center justify-between">
-                  <h2 class="text-xl font-bold text-ink-900 font-serif">
-                    Adicionar Email
-                  </h2>
+                  <h2 class="text-xl font-bold text-ink-900 font-serif">Adicionar Email</h2>
                   <button
                     type="button"
                     @click="closeForm"
@@ -160,7 +158,12 @@ function handleFormSuccess() {
                     aria-label="Fechar"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>

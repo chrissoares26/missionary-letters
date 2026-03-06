@@ -18,7 +18,9 @@ const { data: styleEmailCount } = useStyleEmailCountQuery()
 
 const activeMissionaryCount = computed(() => missionaries.value?.length ?? 0)
 const styleCount = computed(() => styleEmailCount.value ?? 0)
-const sentCount = computed(() => recentCampaigns.value?.filter((c) => c.status === 'sent').length ?? 0)
+const sentCount = computed(
+  () => recentCampaigns.value?.filter((c) => c.status === 'sent').length ?? 0,
+)
 const displayedCampaigns = computed(() => recentCampaigns.value?.slice(0, 5) ?? [])
 const onboardingDone = computed(() => styleCount.value >= STYLE_EMAIL_TARGET)
 
@@ -28,7 +30,7 @@ function formatDate(dateStr: string) {
 </script>
 
 <template>
-  <div class="px-4 pb-6 pt-5">
+  <div class="px-4 pb-6 pt-8">
     <!-- Header -->
     <div class="mb-5">
       <h1 class="text-2xl font-bold" style="color: var(--text-primary)">Início</h1>
@@ -36,11 +38,7 @@ function formatDate(dateStr: string) {
     </div>
 
     <!-- Onboarding nudge — shown until 10 style emails are added -->
-    <div
-      v-if="!onboardingDone"
-      class="mb-5 rounded-2xl p-4"
-      style="background: var(--bg-subtle)"
-    >
+    <div v-if="!onboardingDone" class="mb-5 rounded-2xl p-4" style="background: var(--bg-subtle)">
       <div class="mb-2 flex items-center justify-between">
         <p class="text-sm font-semibold" style="color: var(--text-primary)">
           Configure seu estilo de escrita
@@ -68,7 +66,9 @@ function formatDate(dateStr: string) {
     <!-- Stats row -->
     <div class="mb-5 grid grid-cols-3 gap-3">
       <div class="rounded-2xl p-3 text-center" style="background: var(--bg-surface)">
-        <p class="text-2xl font-bold" style="color: var(--text-primary)">{{ activeMissionaryCount }}</p>
+        <p class="text-2xl font-bold" style="color: var(--text-primary)">
+          {{ activeMissionaryCount }}
+        </p>
         <p class="mt-0.5 text-xs" style="color: var(--text-secondary)">Missionários</p>
       </div>
       <div class="rounded-2xl p-3 text-center" style="background: var(--bg-surface)">
@@ -84,11 +84,7 @@ function formatDate(dateStr: string) {
     <!-- Campaigns section -->
     <div class="mb-3 flex items-center justify-between">
       <h2 class="font-semibold" style="color: var(--text-primary)">Campanhas Recentes</h2>
-      <RouterLink
-        to="/campaigns"
-        class="text-sm"
-        style="color: var(--action-primary)"
-      >
+      <RouterLink to="/campaigns" class="text-sm" style="color: var(--action-primary)">
         Ver todas →
       </RouterLink>
     </div>
@@ -119,8 +115,12 @@ function formatDate(dateStr: string) {
         style="background: var(--bg-surface)"
       >
         <div class="min-w-0">
-          <p class="truncate font-semibold" style="color: var(--text-primary)">{{ campaign.topic }}</p>
-          <p class="mt-0.5 text-xs" style="color: var(--text-secondary)">{{ formatDate(campaign.created_at) }}</p>
+          <p class="truncate font-semibold" style="color: var(--text-primary)">
+            {{ campaign.topic }}
+          </p>
+          <p class="mt-0.5 text-xs" style="color: var(--text-secondary)">
+            {{ formatDate(campaign.created_at) }}
+          </p>
         </div>
         <CampaignStatusBadge :status="campaign.status" class="ml-3 shrink-0" />
       </RouterLink>

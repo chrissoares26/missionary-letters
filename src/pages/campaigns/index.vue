@@ -15,17 +15,23 @@ const filterOptions: { label: string; value: CampaignStatus | undefined }[] = [
 ]
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+  return new Date(dateStr).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 </script>
 
 <template>
-  <div class="px-4 pb-6 pt-5">
+  <div class="px-4 pb-6 pt-8">
     <!-- Header -->
     <div class="mb-5 flex items-start justify-between">
       <div>
         <h1 class="text-2xl font-bold" style="color: var(--text-primary)">Campanhas</h1>
-        <p class="mt-0.5 text-sm" style="color: var(--text-secondary)">Gerencie suas campanhas semanais</p>
+        <p class="mt-0.5 text-sm" style="color: var(--text-secondary)">
+          Gerencie suas campanhas semanais
+        </p>
       </div>
       <RouterLink
         to="/campaigns/new"
@@ -43,9 +49,7 @@ function formatDate(dateStr: string) {
         :key="String(opt.value)"
         class="shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors"
         :class="
-          filters.status === opt.value
-            ? 'border-transparent text-white'
-            : 'border-transparent'
+          filters.status === opt.value ? 'border-transparent text-white' : 'border-transparent'
         "
         :style="
           filters.status === opt.value
@@ -69,10 +73,7 @@ function formatDate(dateStr: string) {
     </div>
 
     <!-- Empty state -->
-    <div
-      v-else-if="!campaigns?.length"
-      class="mt-16 flex flex-col items-center gap-3 text-center"
-    >
+    <div v-else-if="!campaigns?.length" class="mt-16 flex flex-col items-center gap-3 text-center">
       <p class="text-lg font-medium" style="color: var(--text-primary)">Nenhuma campanha ainda</p>
       <p class="text-sm" style="color: var(--text-secondary)">Crie sua primeira campanha semanal</p>
       <RouterLink
@@ -94,8 +95,12 @@ function formatDate(dateStr: string) {
         style="background: var(--bg-surface)"
       >
         <div class="min-w-0">
-          <p class="truncate font-semibold" style="color: var(--text-primary)">{{ campaign.topic }}</p>
-          <p class="mt-0.5 text-xs" style="color: var(--text-secondary)">{{ formatDate(campaign.created_at) }}</p>
+          <p class="truncate font-semibold" style="color: var(--text-primary)">
+            {{ campaign.topic }}
+          </p>
+          <p class="mt-0.5 text-xs" style="color: var(--text-secondary)">
+            {{ formatDate(campaign.created_at) }}
+          </p>
         </div>
         <CampaignStatusBadge :status="campaign.status" class="ml-3 shrink-0" />
       </RouterLink>
