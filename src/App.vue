@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 import BottomNav from '@/components/layout/BottomNav.vue'
 import Toast from '@/components/ui/Toast.vue'
 import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import { useToast } from '@/composables/useToast'
 
 const { toasts, removeToast } = useToast()
+const route = useRoute()
+
+const authRoutes = ['/login', '/register', '/reset-password']
+const showNav = computed(() => !authRoutes.includes(route.path))
 </script>
 
 <template>
@@ -13,11 +18,11 @@ const { toasts, removeToast } = useToast()
     class="flex min-h-dvh flex-col"
     style="background: var(--bg-canvas)"
   >
-    <main class="flex-1 overflow-y-auto pb-[calc(4rem+env(safe-area-inset-bottom))]">
+    <main :class="['flex-1 overflow-y-auto', showNav ? 'pb-[calc(4rem+env(safe-area-inset-bottom))]' : '']">
       <RouterView />
     </main>
 
-    <BottomNav />
+    <BottomNav v-if="showNav" />
 
     <ConfirmModal />
 
