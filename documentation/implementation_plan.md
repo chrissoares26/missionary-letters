@@ -804,7 +804,7 @@ Completed (2026-03-06):
 - Added logging checklist: `documentation/operational_logging_checklist.md`
 - Deployed `missionaries_autodeactivate` Edge Function (ACTIVE, version 1) via Supabase MCP
 
-**Operational note:** Daily cron at `2:00 AM UTC` must be configured via Supabase dashboard > Edge Functions > Schedule, or via `pg_cron` once enabled in the project extensions.
+**Operational note:** Daily cron at `2:00 AM UTC` — ✅ configured via Supabase dashboard > Edge Functions > Schedule.
 
 ### Story 7.3: Security Checklist ✅ COMPLETE
 **Scope**
@@ -841,11 +841,13 @@ Completed (2026-03-06):
 
 ---
 
-## Epic 8: QA, UAT, and Release Readiness
+## Epic 8: QA, UAT, and Release Readiness ✅ COMPLETE
 
 **Objective:** Validate MVP against PRD acceptance criteria and establish release go/no-go.
 
-### Story 8.1: Test Matrix
+**Session:** `2026-03-06-0925-epic8-qa-release.md`
+
+### Story 8.1: Test Matrix ✅
 **Scope**
 - Define required unit, integration, end-to-end, and manual checks.
 
@@ -856,9 +858,14 @@ Completed (2026-03-06):
 - Epics 1-7.
 
 **Acceptance Criteria**
-- Every critical workflow has assigned test level and owner.
+- ✅ Every critical workflow has assigned test level and owner.
 
-### Story 8.2: PRD Acceptance Mapping
+**Implementation Notes (2026-03-06)**
+- `documentation/test_matrix.md` — full matrix across 7 feature areas + 6 cross-epic scenarios
+- `src/__tests__/authErrors.spec.ts` — 6 unit tests for `getAuthErrorMessage` and `fieldErrors`
+- Total: 11 unit tests passing (3 files)
+
+### Story 8.2: PRD Acceptance Mapping ✅
 **Scope**
 - Map PRD MVP criteria to explicit validation steps.
 
@@ -869,9 +876,14 @@ Completed (2026-03-06):
 - Story 8.1.
 
 **Acceptance Criteria**
-- No PRD MVP acceptance criterion is unmapped.
+- ✅ No PRD MVP acceptance criterion is unmapped.
 
-### Story 8.3: Release Runbook and Go/No-Go
+**Implementation Notes (2026-03-06)**
+- `documentation/prd_acceptance_mapping.md` — traces all 6 AC + all 10 FR + NFRs to implementation evidence
+- All FR-1 through FR-10 mapped with file-level implementation evidence
+- Non-goals verified not shipped; deferred items documented with rationale
+
+### Story 8.3: Release Runbook and Go/No-Go ✅
 **Scope**
 - Define final release checklist and rollback/mitigation basics.
 
@@ -882,10 +894,18 @@ Completed (2026-03-06):
 - Story 8.2.
 
 **Acceptance Criteria**
-- Release decision criteria are explicit and auditable.
+- ✅ Release decision criteria are explicit and auditable.
+
+**Implementation Notes (2026-03-06)**
+- `documentation/release_runbook.md` — pre-release checklist (env, DB, Edge Functions, scheduler, build, UAT smoke tests)
+- Go/No-Go gate with P0/P1 classification and sign-off field
+- Rollback plan per failure mode
+- Post-release monitoring SQL queries
 
 **Epic 8 Exit Criteria**
-- MVP can be validated and released with clear risk controls.
+- ✅ Story 8.1: Test matrix written; 11 unit tests passing; authErrors unit tests added
+- ✅ Story 8.2: All 6 PRD acceptance criteria and 10 FRs mapped to implementation evidence
+- ✅ Story 8.3: Release runbook with environment, DB, function, scheduler, and UAT checklists complete
 
 ## 4. Cross-Epic Test Scenarios (Mandatory)
 
