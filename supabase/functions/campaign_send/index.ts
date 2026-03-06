@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { delay, escapeHtml, getRateLimitDelayMs, renderTokens, toBase64Url } from './helpers.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,16 +27,6 @@ interface GoogleAccount {
   expiry: string
 }
 
-// FIX (unescape deprecated): encode a string to base64url using TextEncoder
-function toBase64Url(str: string): string {
-  const bytes = new TextEncoder().encode(str)
-  let binary = ''
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte)
-  }
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-}
-
 // FIX (unescape deprecated): RFC 2047 encoded-word for email subjects
 function encodeSubject(subject: string): string {
   const bytes = new TextEncoder().encode(subject)
@@ -44,27 +35,6 @@ function encodeSubject(subject: string): string {
     binary += String.fromCharCode(byte)
   }
   return `=?UTF-8?B?${btoa(binary)}?=`
-}
-
-// FIX (XSS): escape user-controlled text before embedding in HTML
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
-
-function renderTokens(template: string, missionary: Missionary): string {
-  return template
-    .replace(/\{\{title\}\}/g, missionary.title)
-    .replace(/\{\{first_name\}\}/g, missionary.first_name)
-    .replace(/\{\{last_name\}\}/g, missionary.last_name)
-    .replace(/\{\{mission_name\}\}/g, missionary.mission_name ?? '')
-    .replace(
-      /\{\{full_name\}\}/g,
-      `${missionary.title} ${missionary.first_name} ${missionary.last_name}`,
-    )
 }
 
 function buildHtmlEmail(body: string, images: string[], signature: string | null): string {
@@ -322,7 +292,15 @@ Deno.serve(async (req) => {
     let successCount = 0
     let failCount = 0
 
-    for (const missionary of missionaries as Missionary[]) {
+    const activeMissionaries = missionaries as Missionary[]
+    const shouldRateLimit = activeMissionaries.length > 15
+
+    for (const [index, missionary] of activeMissionaries.entries()) {
+      // Rate-limit long sends to reduce Gmail API burst pressure for large lists.
+      if (shouldRateLimit && index > 0) {
+        await delay(getRateLimitDelayMs(300, 200))
+      }
+
       const renderedSubject = renderTokens(content.email_subject, missionary)
       const renderedBody = renderTokens(content.email_body, missionary)
       const htmlBody = buildHtmlEmail(
@@ -381,7 +359,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const finalStatus = failCount === missionaries.length ? 'failed' : 'sent'
+    const finalStatus = failCount === activeMissionaries.length ? 'failed' : 'sent'
     await adminClient
       .from('campaigns')
       .update({ status: finalStatus })
