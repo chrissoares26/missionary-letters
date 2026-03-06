@@ -4,10 +4,17 @@ import { useRoute, useRouter } from 'vue-router'
 import GmailConnectCard from '@/components/features/settings/GmailConnectCard.vue'
 import SignatureEditor from '@/components/features/settings/SignatureEditor.vue'
 import { useToast } from '@/composables/useToast'
+import { useAuth } from '@/composables/useAuth'
 
 const route = useRoute()
 const router = useRouter()
 const { success: showToastSuccess, error: showToastError } = useToast()
+const { signOut } = useAuth()
+
+async function handleSignOut() {
+  await signOut()
+  router.push('/login')
+}
 
 onMounted(async () => {
   const gmailState = route.query.gmail
@@ -35,6 +42,14 @@ onMounted(async () => {
     <div class="mx-auto max-w-2xl space-y-4 p-4">
       <GmailConnectCard />
       <SignatureEditor />
+
+      <button
+        type="button"
+        class="w-full rounded-lg border border-danger-600 py-3 text-sm font-medium text-danger-600 transition-colors hover:bg-danger-600 hover:text-white"
+        @click="handleSignOut"
+      >
+        Sair da conta
+      </button>
     </div>
   </div>
 </template>
