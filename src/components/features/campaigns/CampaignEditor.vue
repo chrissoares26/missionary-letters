@@ -14,13 +14,14 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  'copy': [text: string, type: string]
+  copy: [text: string, type: string]
 }>()
 
 const updateMutation = useUpdateCampaignContent()
 const { error: showToastError } = useToast()
 const saving = ref(false)
 const lastSaved = ref<Date | null>(null)
+let savingTimer: ReturnType<typeof setTimeout> | null = null
 
 // Local state for editing
 const emailSubject = ref(props.content.email_subject)
@@ -30,16 +31,24 @@ const facebookText = ref(props.content.facebook_text)
 const images = ref<string[]>(props.content.images || [])
 
 // Watch for external content changes (e.g., regeneration)
-watch(() => props.content, (newContent) => {
-  emailSubject.value = newContent.email_subject
-  emailBody.value = newContent.email_body
-  whatsappText.value = newContent.whatsapp_text
-  facebookText.value = newContent.facebook_text
-  images.value = newContent.images || []
-}, { deep: true })
+watch(
+  () => props.content,
+  (newContent) => {
+    emailSubject.value = newContent.email_subject
+    emailBody.value = newContent.email_body
+    whatsappText.value = newContent.whatsapp_text
+    facebookText.value = newContent.facebook_text
+    images.value = newContent.images || []
+  },
+  { deep: true },
+)
 
 // Auto-save with debounce
 const saveContent = useDebounceFn(async () => {
+  if (savingTimer) {
+    clearTimeout(savingTimer)
+    savingTimer = null
+  }
   try {
     saving.value = true
     await updateMutation.mutateAsync({
@@ -59,7 +68,11 @@ const saveContent = useDebounceFn(async () => {
     // Retry after 2s
     setTimeout(saveContent, 2000)
   } finally {
-    saving.value = false
+    // Keep "Salvando..." visible for at least 1s so it doesn't flicker
+    savingTimer = setTimeout(() => {
+      saving.value = false
+      savingTimer = null
+    }, 1000)
   }
 }, 500)
 
@@ -82,6 +95,22 @@ function copyToClipboard(text: string, type: string) {
   navigator.clipboard.writeText(text)
   emit('copy', text, type)
 }
+
+async function downloadAiImage() {
+  if (!props.content.ai_image_url) return
+  try {
+    const response = await fetch(props.content.ai_image_url)
+    const blob = await response.blob()
+    const objectUrl = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = objectUrl
+    a.download = 'imagem-da-semana.png'
+    a.click()
+    URL.revokeObjectURL(objectUrl)
+  } catch {
+    showToastError('Erro ao baixar imagem')
+  }
+}
 </script>
 
 <template>
@@ -91,10 +120,25 @@ function copyToClipboard(text: string, type: string) {
       {{ saveIndicator }}
     </div>
 
-    <!-- Images section -->
-    <section class="space-y-3">
-      <h2 class="text-lg font-semibold text-[var(--text-primary)]">Imagens</h2>
-      <ImageUploader v-model="images" :campaign-id="campaignId" />
+    <!-- AI-generated image section -->
+    <section v-if="content.ai_image_url" class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-[var(--text-primary)]">Imagem da Semana</h2>
+        <button
+          type="button"
+          class="text-sm text-[var(--action-primary)] hover:underline"
+          @click="downloadAiImage"
+        >
+          Baixar imagem
+        </button>
+      </div>
+      <div class="rounded-xl overflow-hidden bg-[var(--bg-subtle)]">
+        <img
+          :src="content.ai_image_url"
+          alt="Imagem da semana gerada pela IA"
+          class="w-full max-w-sm mx-auto block"
+        />
+      </div>
     </section>
 
     <!-- Email section -->
@@ -102,9 +146,7 @@ function copyToClipboard(text: string, type: string) {
       <h2 class="text-lg font-semibold text-[var(--text-primary)]">Email</h2>
 
       <div>
-        <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-          Assunto
-        </label>
+        <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2"> Assunto </label>
         <input
           v-model="emailSubject"
           type="text"
@@ -114,15 +156,17 @@ function copyToClipboard(text: string, type: string) {
 
       <div>
         <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-          Corpo do Email
+          Mensagem
         </label>
         <textarea
           v-model="emailBody"
-          rows="12"
+          rows="8"
           class="w-full px-4 py-2 border border-[var(--border-default)] rounded-lg focus:ring-2 focus:ring-[var(--action-primary)] focus:border-transparent resize-y"
         />
-        <p class="mt-1 text-xs text-[var(--text-secondary)]">
-          {{ emailBody.length }} caracteres
+        <p class="mt-1 text-xs text-[var(--text-secondary)]">{{ emailBody.length }} caracteres</p>
+        <p v-pre class="mt-1 text-xs text-[var(--text-secondary)] font-mono">
+          Tokens: {{ greeting }}, {{ title }}, {{ last_name }}, {{ first_name }}, {{ full_name }},
+          {{ mission_name }}
         </p>
       </div>
     </section>
@@ -136,7 +180,7 @@ function copyToClipboard(text: string, type: string) {
           class="text-sm text-[var(--action-primary)] hover:underline"
           @click="copyToClipboard(whatsappText, 'WhatsApp')"
         >
-          Copiar
+          Copiar texto
         </button>
       </div>
 
@@ -147,9 +191,7 @@ function copyToClipboard(text: string, type: string) {
       />
       <p class="text-xs text-[var(--text-secondary)]">
         {{ whatsappText.length }} caracteres
-        <span v-if="whatsappText.length > 1600" class="text-amber-500">
-          (recomendado: ~1600)
-        </span>
+        <span v-if="whatsappText.length > 1600" class="text-amber-500"> (recomendado: ~1600) </span>
       </p>
     </section>
 
@@ -171,9 +213,13 @@ function copyToClipboard(text: string, type: string) {
         rows="6"
         class="w-full px-4 py-2 border border-[var(--border-default)] rounded-lg focus:ring-2 focus:ring-[var(--action-primary)] focus:border-transparent resize-y"
       />
-      <p class="text-xs text-[var(--text-secondary)]">
-        {{ facebookText.length }} caracteres
-      </p>
+      <p class="text-xs text-[var(--text-secondary)]">{{ facebookText.length }} caracteres</p>
+    </section>
+
+    <!-- Additional images (manually uploaded) -->
+    <section class="space-y-3">
+      <h2 class="text-lg font-semibold text-[var(--text-primary)]">Imagens adicionais</h2>
+      <ImageUploader v-model="images" :campaign-id="campaignId" />
     </section>
   </div>
 </template>

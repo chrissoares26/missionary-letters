@@ -37,7 +37,12 @@ function encodeSubject(subject: string): string {
   return `=?UTF-8?B?${btoa(binary)}?=`
 }
 
-function buildHtmlEmail(body: string, images: string[], signature: string | null): string {
+function buildHtmlEmail(
+  body: string,
+  images: string[],
+  signature: string | null,
+  aiImageUrl: string | null,
+): string {
   // FIX (XSS): escape each line before wrapping in <p>
   const paragraphs = body
     .split('\n')
@@ -46,6 +51,14 @@ function buildHtmlEmail(body: string, images: string[], signature: string | null
     )
     .join('')
 
+  // AI-generated quote card is the hero image — shown first, centered, larger
+  const heroHtml = aiImageUrl
+    ? `<div style="text-align:center;margin:24px 0">
+        <img src="${escapeHtml(aiImageUrl)}" style="max-width:100%;width:480px;height:auto;border-radius:12px;display:inline-block" alt="Imagem da semana" />
+      </div>`
+    : ''
+
+  // Any manually uploaded images follow
   const imagesHtml = images.length
     ? images
         .map(
@@ -64,6 +77,7 @@ function buildHtmlEmail(body: string, images: string[], signature: string | null
 <html lang="pt-BR">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#333;background:#fff">
+${heroHtml}
 ${paragraphs}
 ${imagesHtml}
 ${signatureHtml}
@@ -307,6 +321,7 @@ Deno.serve(async (req) => {
         renderedBody,
         content.images ?? [],
         profile?.signature ?? null,
+        content.ai_image_url ?? null,
       )
 
       // FIX (owner_id): campaign_recipients has no owner_id column — removed

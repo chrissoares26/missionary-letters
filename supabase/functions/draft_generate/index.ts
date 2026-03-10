@@ -24,6 +24,8 @@ interface GeneratedContent {
   email_body: string
   whatsapp_text: string
   facebook_text: string
+  quote_text: string
+  quote_attribution: string | null
 }
 
 Deno.serve(async (req) => {
@@ -144,9 +146,11 @@ Deno.serve(async (req) => {
 
     const resourcesText = campaign.resources || 'Nenhum recurso fornecido'
 
-    const prompt = `Você é um assistente que ajuda a escrever emails missionários semanais em português brasileiro.
+    const prompt = `Você é um assistente que ajuda a escrever mensagens missionárias semanais em português brasileiro.
 
-OBJETIVO: Gerar conteúdo para uma campanha semanal com base no tema fornecido pela usuária, mantendo a voz autêntica dela.
+OBJETIVO: Gerar dois tipos de mensagem baseados no tema da semana:
+1. EMAIL — enviado individualmente a cada missionário (filho/filha espiritual), tom de mãe para filho(a)
+2. WHATSAPP — enviado ao grupo de família, amigos e pessoas do ministério que acompanham os missionários. Tom devocional e comunitário, como uma mensagem inspiradora de domingo para o grupo. NÃO é para os missionários — é para quem os apoia de casa.
 
 TEMA: ${campaign.topic}
 
@@ -163,7 +167,8 @@ EXEMPLOS DE EMAILS ANTERIORES (mais similares ao tema):
 ${styleExamplesText}
 
 PERSONALIZAÇÃO POR MISSIONÁRIO:
-O email é enviado individualmente para cada missionário. Use estes tokens no corpo — eles serão substituídos automaticamente no envio:
+A mensagem é enviada individualmente. Use estes tokens no email — eles serão substituídos automaticamente:
+- {{greeting}} → "Querido" (Élder) ou "Querida" (Irmã) — inferido automaticamente
 - {{title}} → "Élder" ou "Irmã"
 - {{last_name}} → sobrenome do missionário
 - {{first_name}} → primeiro nome
@@ -171,28 +176,32 @@ O email é enviado individualmente para cada missionário. Use estes tokens no c
 - {{mission_name}} → nome da missão (pode ser vazio)
 
 REGRAS OBRIGATÓRIAS:
-- Comece o email SEMPRE com: "Querido(a) {{title}} {{last_name}},"
-- NÃO use saudações genéricas como "Queridos familiares e amigos"
-- NÃO inclua assinatura ou fechamento (ex: "Com amor, Maria") — a assinatura é adicionada automaticamente
-- Pode usar {{title}} {{last_name}} no corpo se precisar se referir ao missionário
+- email_body: Comece SEMPRE com "{{greeting}} {{title}} {{last_name}}," — {{greeting}} é um token resolvido automaticamente como "Querido" (Élder) ou "Querida" (Irmã)
+- email_body: Mensagem CURTA — 2 a 4 frases no máximo. Calorosa, pessoal, de mãe para filho(a).
+- email_body: NÃO inclua assinatura ou fechamento (adicionado automaticamente)
+- whatsapp_text: Mensagem DIFERENTE do email — destinada ao grupo de família/amigos/ministério que apoia os missionários de casa. Tom devocional, comunitário, inspirador. Pode incluir: citações de hinos ou escrituras, reflexão espiritual, emojis (🙏❤️). NÃO começa com "Queridos missionários". Estilo similar ao exemplo abaixo:
+  EXEMPLO REAL de mensagem WhatsApp da usuária:
+  "De que maneira nosso Pai ao mundo ensina amor? / Mandou seu Filho, um bebê, o nosso Salvador. [...] (Hino da Primária SUD) *Ele é o Nosso Salvador. Ele vive. Ele nos ama e quer que sejamos como Ele é. Ele irá ajudar, a nos preparar para voltarmos a viver com Ele [...] Esse é o Plano de Salvação. O Plano de Felicidade 🙏❤️"
+- quote_text: Uma citação ou frase inspiradora relacionada ao tema — pode ser das escrituras, de um líder da Igreja, ou criada pela usuária com base nas ideias dela. Máximo 80 palavras.
+- quote_attribution: Autor da citação se houver (ex: "Gordon B. Hinckley", "Mórmons 9:21"), ou null se for criação própria
 
 INSTRUÇÕES:
 1. Escreva no estilo da usuária baseando-se no perfil e exemplos
-2. Use tom conversacional, caloroso e pessoal — como uma mãe escrevendo para um filho na missão
-3. Incorpore os recursos fornecidos naturalmente
-4. Para o email: mantenha a estrutura que ela costuma usar, com abertura personalizada
-5. Para WhatsApp: mais curto, casual, pode usar emojis (sem tokens de personalização)
-6. Para Facebook: público-geral, encorajador, sem tokens de personalização
+2. Tom conversacional, caloroso e pessoal
+3. Incorpore os recursos fornecidos naturalmente na quote_text
+4. Para Facebook: público-geral, encorajador, sem tokens de personalização
 
 FORMATO DE SAÍDA (JSON):
 {
   "email_subject": "assunto do email",
-  "email_body": "corpo do email (pode ter várias linhas)",
-  "whatsapp_text": "mensagem para WhatsApp",
-  "facebook_text": "post para Facebook"
+  "email_body": "{{greeting}} {{title}} {{last_name}},\n\n<2-4 frases calorosas>\n\n<frase de fechamento mencionando o {{title}} {{last_name}}>",
+  "whatsapp_text": "<mensagem devocional para família/amigos — pode começar com citação, reflexão ou hino — inclua emojis>",
+  "facebook_text": "post público encorajador",
+  "quote_text": "<citação ou frase inspiradora para a imagem>",
+  "quote_attribution": "<autor ou null>"
 }`
 
-    // Call OpenAI
+    // Call OpenAI for text generation
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -205,19 +214,19 @@ FORMATO DE SAÍDA (JSON):
           {
             role: 'system',
             content:
-              'Você é um assistente que gera conteúdo para campanhas missionárias em português brasileiro. Sempre retorne JSON válido.',
+              'Você é um assistente que gera mensagens missionárias em português brasileiro. Sempre retorne JSON válido.',
           },
           { role: 'user', content: prompt },
         ],
         temperature: 0.7,
-        max_tokens: 2000,
+        max_tokens: 1500,
         response_format: { type: 'json_object' },
       }),
     })
 
     if (!openaiResponse.ok) {
       const errorText = await openaiResponse.text()
-      console.error('OpenAI error:', errorText)
+      console.error('OpenAI text generation error:', errorText)
       return new Response(JSON.stringify({ error: 'Generation failed' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -229,6 +238,73 @@ FORMATO DE SAÍDA (JSON):
       openaiData.choices[0].message.content,
     )
 
+    // Generate quote card image with DALL-E 3
+    let aiImageUrl: string | null = null
+
+    try {
+      // GPT sometimes returns the string "null" instead of JSON null — guard both
+      const attribution = generatedContent.quote_attribution && generatedContent.quote_attribution !== 'null'
+        ? `\n\n— ${generatedContent.quote_attribution}` : ''
+
+      const imagePrompt = `Create an inspirational quote card image with a warm, feminine aesthetic. Style: cream or beige linen-textured background, bold readable handwritten-style or serif typography, soft pink and warm gold decorative accents (small hearts, subtle floral or leaf elements, gentle borders). The quote text must be clearly legible and centered. Simple decorative card frame. No photography. No people. Pure typography and soft ornamental elements only. Square format. High contrast text on light background.
+
+Quote to display (in Portuguese): "${generatedContent.quote_text}${attribution}"
+
+Warm, uplifting, and suitable for a Brazilian LDS/evangelical mother sending to her missionary children. The design should feel like a heartfelt handmade card.`
+
+      const imageApiResponse = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-image-1',
+          prompt: imagePrompt,
+          size: '1024x1024',
+          quality: 'high',
+        }),
+      })
+
+      if (imageApiResponse.ok) {
+        const imageData = await imageApiResponse.json()
+        const b64 = imageData.data?.[0]?.b64_json
+
+        if (b64) {
+          // gpt-image-1 returns base64 directly — decode in-memory, no secondary fetch
+          const binaryString = atob(b64)
+          const bytes = new Uint8Array(binaryString.length)
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i)
+          }
+          const imageBuffer = bytes.buffer
+          const storagePath = `${ownerId}/${campaign_id}/ai-card.png`
+
+          const { data: storageData, error: storageError } = await adminClient.storage
+            .from('campaign-images')
+            .upload(storagePath, imageBuffer, {
+              contentType: 'image/png',
+              upsert: true,
+            })
+
+          if (!storageError && storageData) {
+            const { data: urlData } = adminClient.storage
+              .from('campaign-images')
+              .getPublicUrl(storageData.path)
+            aiImageUrl = urlData.publicUrl
+          } else {
+            console.error('Storage upload error:', storageError)
+          }
+        }
+      } else {
+        const imgError = await imageApiResponse.text()
+        console.error('gpt-image-1 error:', imgError)
+      }
+    } catch (imgErr) {
+      // Image generation failure is non-fatal — continue without image
+      console.error('Image generation failed, continuing without image:', imgErr)
+    }
+
     // Insert campaign_content
     const { error: insertError } = await adminClient.from('campaign_content').insert({
       campaign_id: campaign.id,
@@ -237,6 +313,7 @@ FORMATO DE SAÍDA (JSON):
       whatsapp_text: generatedContent.whatsapp_text,
       facebook_text: generatedContent.facebook_text,
       images: [],
+      ai_image_url: aiImageUrl,
     })
 
     if (insertError) {
@@ -251,6 +328,7 @@ FORMATO DE SAÍDA (JSON):
       JSON.stringify({
         success: true,
         tokens_used: openaiData.usage.total_tokens,
+        image_generated: aiImageUrl !== null,
       }),
       {
         status: 200,

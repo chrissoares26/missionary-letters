@@ -23,7 +23,10 @@ export function escapeHtml(text: string): string {
 }
 
 export function renderTokens(template: string, missionary: MissionaryTokenData): string {
+  // "Élder"/"Elder" → masculine, everything else ("Irmã"/"Sister") → feminine
+  const greeting = /lder/i.test(missionary.title) ? 'Querido' : 'Querida'
   return template
+    .replace(/\{\{greeting\}\}/g, greeting)
     .replace(/\{\{title\}\}/g, missionary.title)
     .replace(/\{\{first_name\}\}/g, missionary.first_name)
     .replace(/\{\{last_name\}\}/g, missionary.last_name)

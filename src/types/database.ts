@@ -92,6 +92,7 @@ export interface CampaignContent {
   whatsapp_text: string
   facebook_text: string
   images: string[] | null
+  ai_image_url: string | null
   updated_at: string
 }
 

@@ -20,6 +20,7 @@ export interface CampaignContentUpdate {
   whatsapp_text?: string
   facebook_text?: string
   images?: string[] // Storage URLs
+  ai_image_url?: string | null
 }
 
 export interface CampaignWithContent {

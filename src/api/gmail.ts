@@ -65,8 +65,13 @@ export async function disconnectGoogleAccount(): Promise<void> {
 }
 
 export async function sendCampaign(campaignId: string): Promise<{ sent: number; failed: number }> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
   const { data, error } = await supabase.functions.invoke('campaign_send', {
     body: { campaign_id: campaignId },
+    headers: { Authorization: `Bearer ${session?.access_token}` },
   })
 
   if (error) {

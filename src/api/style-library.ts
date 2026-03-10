@@ -57,8 +57,13 @@ export async function deleteStyleEmail(id: string): Promise<void> {
 }
 
 export async function triggerEmbedding(id: string): Promise<void> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
   const { error } = await supabase.functions.invoke('style_embed_upsert', {
     body: { id },
+    headers: { Authorization: `Bearer ${session?.access_token}` },
   })
   // Fire-and-forget: badge will show status via Realtime
   if (error) console.warn('Embedding trigger failed:', error.message)
@@ -84,8 +89,13 @@ export async function getStyleProfile(): Promise<StyleProfile | null> {
 }
 
 export async function generateStyleProfile(): Promise<StyleProfile> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
   const { data, error } = await supabase.functions.invoke('style_profile_generate', {
     body: {},
+    headers: { Authorization: `Bearer ${session?.access_token}` },
   })
 
   if (error) throw new Error(`Failed to generate style profile: ${error.message}`)

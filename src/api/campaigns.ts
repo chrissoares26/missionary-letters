@@ -159,6 +159,7 @@ export async function updateCampaignContent(
   if (updates.whatsapp_text !== undefined) updateData.whatsapp_text = updates.whatsapp_text
   if (updates.facebook_text !== undefined) updateData.facebook_text = updates.facebook_text
   if (updates.images !== undefined) updateData.images = updates.images
+  if (updates.ai_image_url !== undefined) updateData.ai_image_url = updates.ai_image_url
 
   const { data, error } = await supabase
     .from('campaign_content')
@@ -191,10 +192,16 @@ export async function deleteCampaign(id: string): Promise<void> {
 
 /**
  * Trigger draft generation (fire-and-forget)
+ * Explicitly passes the Authorization header — required with publishable key format
  */
 export async function triggerDraftGeneration(campaignId: string): Promise<void> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
   const { error } = await supabase.functions.invoke('draft_generate', {
     body: { campaign_id: campaignId },
+    headers: { Authorization: `Bearer ${session?.access_token}` },
   })
 
   // Fire-and-forget: content will appear via Realtime subscription
